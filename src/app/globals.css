@@ -1,27 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg: #F6F2EC;
+  --color-olive: #5E6B3C;
+  --color-sand: #E8DFC9;
+  --color-terracotta: #C4714A;
+  --color-stone: #A89880;
+  --color-text: #2D2A24;
+  --color-text-muted: #6B6356;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+@layer components {
+  .container-main {
+    @apply max-w-container mx-auto px-6 md:px-10 lg:px-12;
   }
+
+  .section-spacing {
+    @apply py-14 md:py-20 lg:py-28;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-olive text-sand-light font-sans font-medium text-sm tracking-wide rounded-full transition-all duration-200 hover:bg-olive-dark hover:shadow-soft-lg active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 border border-olive text-olive font-sans font-medium text-sm tracking-wide rounded-full transition-all duration-200 hover:bg-olive hover:text-sand-light active:scale-95;
+  }
+
+  .card {
+    @apply bg-sand-light rounded-2xl p-8 shadow-card border border-sand;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-sand rounded-xl font-sans text-sm text-stone focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/10 transition-all duration-150;
+    color: var(--color-text);
+  }
+
+  .input-field::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.7;
+  }
+
+  .label {
+    @apply block font-sans text-sm font-medium text-stone mb-1.5;
+  }
+
+  .section-title {
+    @apply font-serif text-3xl md:text-4xl lg:text-5xl text-olive font-medium;
+  }
+
+  .section-subtitle {
+    @apply font-sans text-base md:text-lg text-stone font-light leading-relaxed;
+  }
+}
+
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Divider ornament */
+.ornament {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #5E6B3C, transparent);
+  display: block;
+  margin: 0 auto;
 }
