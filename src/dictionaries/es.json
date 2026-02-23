@@ -1,0 +1,172 @@
+{
+    "nav": {
+        "rsvp": "Confirmar asistencia",
+        "event": "El evento",
+        "timeline": "El día",
+        "faq": "FAQ"
+    },
+    "hero": {
+        "names": "Paula & Oriol",
+        "date": "19 de septiembre de 2026",
+        "subtitle": "Un dia para compartir con amigos y celebrar la vida.",
+        "cta": "Confirma tu asistencia"
+    },
+    "event": {
+        "title": "La celebración",
+        "date_label": "Fecha",
+        "date": "Sábado, 19 de septiembre de 2026",
+        "time_label": "Horario",
+        "time": "12:00 – 22:00",
+        "type_label": "Formato",
+        "type": "Aperitivo, paella, piscina & música",
+        "location_label": "Lugar",
+        "location_name": "Mas Corbella, Alcover, Tarragona",
+        "location_cta": "Ver en Google Maps"
+    },
+    "timeline": {
+        "title": "El día",
+        "items": [
+            {
+                "time": "12:00",
+                "title": "Bienvenida",
+                "desc": "Aperitivos y bienvenida en el jardín"
+            },
+            {
+                "time": "14:00",
+                "title": "Paella",
+                "desc": "Mesa larga con todos"
+            },
+            {
+                "time": "16:00",
+                "title": "Piscina & Música",
+                "desc": "Tarde de música y baño"
+            },
+            {
+                "time": "19:00",
+                "title": "Merienda & Cócteles",
+                "desc": "Algo para picar y seguir bailando"
+            },
+            {
+                "time": "22:00",
+                "title": "¡Hasta pronto!",
+                "desc": "Hasta la próxima"
+            }
+        ]
+    },
+    "playlist": {
+        "title": "La playlist",
+        "subtitle": "Escucha el ambiente que hemos preparado y añade tú la canción que no puede faltar."
+    },
+    "photos": {
+        "title": "Álbum compartido",
+        "subtitle": "Comparte tus fotos del día con todos",
+        "cta": "Ver el álbum de Google Photos"
+    },
+    "countdown": {
+        "title": "¡Ya queda poco!",
+        "days": "días",
+        "hours": "horas",
+        "minutes": "minutos",
+        "seconds": "segundos",
+        "past": "¡Hoy es el gran día!"
+    },
+    "faq": {
+        "title": "Preguntas frecuentes",
+        "items": [
+            {
+                "q": "¿Hay código de vestimenta?",
+                "a": "Ropa cómoda y elegante de verano. ¡Tened en cuenta que habrá piscina!"
+            },
+            {
+                "q": "¿Puedo traer niños?",
+                "a": "¡Sí! Estáis más que bienvenidos a venir con los niños. Nos encanta que venga toda la familia. Indicad cuántos adultos y cuántos pequeños sois en la confirmación."
+            },
+            {
+                "q": "¿Hay aparcamiento?",
+                "a": "Sí, hay aparcamiento en el lugar. Os daremos detalles una semana antes."
+            },
+            {
+                "q": "¿Cuándo se cierran las confirmaciones?",
+                "a": "Antes del 31 de agosto de 2026, por favor."
+            },
+            {
+                "q": "¿Qué alojamientos hay cerca?",
+                "a": "Os enviaremos una lista de opciones recomendadas cuando confirméis."
+            }
+        ]
+    },
+    "rsvp": {
+        "title": "Confirma tu asistencia",
+        "subtitle": "Haznos saber si puedes estar",
+        "name_label": "Nombre completo",
+        "name_placeholder": "Tu nombre",
+        "email_label": "Correo electrónico",
+        "email_placeholder": "tu@ejemplo.com",
+        "attending_label": "¿Podrás venir?",
+        "attending_yes": "¡Sí, estaré!",
+        "attending_no": "Lamentablemente no puedo",
+        "adults_label": "¿Cuántos adultos os confirmáis?",
+        "kids_label": "¿Cuántos niños vienen?",
+        "kids_placeholder": "0",
+        "dietary_label": "Restricciones dietéticas",
+        "dietary_placeholder": "Alergias, intolerancias, .. (opcional)",
+        "staying_label": "¿Te quedas hasta el final (22:00)?",
+        "staying_yes": "Sí",
+        "staying_no": "Me voy antes",
+        "song_label": "¿Qué canción no puede faltar?",
+        "song_placeholder": "Tu canción para la playlist (opcional)",
+        "comments_label": "Comentarios",
+        "comments_placeholder": "Cualquier cosa que queráis hacernos saber (opcional)",
+        "submit": "Enviar confirmación",
+        "submitting": "Enviando...",
+        "success_title": "¡Muchas gracias!",
+        "success_message": "Hemos recibido tu confirmación. ¡Nos vemos el 19 de septiembre!",
+        "error": "Ha habido un error. Por favor, inténtalo de nuevo.",
+        "validation_name": "El nombre es obligatorio",
+        "validation_email": "El email no es válido",
+        "validation_attending": "Por favor, indica si puedes asistir"
+    },
+    "contact": {
+        "title": "Contacto",
+        "subtitle": "Si tienes alguna duda o necesitas ayuda, escríbenos o llámanos",
+        "email_label": "Correo",
+        "phone_label": "Teléfono"
+    },
+    "footer": {
+        "made_with": "Hecho con amor por",
+        "couple": "Paula & Oriol"
+    },
+    "venue": {
+        "title": "El espacio",
+        "subtitle": "Masía de piedra en una finca forestal a los pies del Parque Natural de les Muntanyes de Prades.",
+        "maps_cta": "Abrir en Google Maps",
+        "getting_there_title": "Cómo llegar",
+        "getting_there_note": "Tiempos aproximados en coche",
+        "origins": [
+            {
+                "city": "Zaragoza",
+                "km": "~260 km",
+                "time": "~2h 30min",
+                "mapsUrl": "https://www.google.com/maps/dir/Zaragoza,Spain/Mas+Corbella,+Alcover,+Tarragona"
+            },
+            {
+                "city": "Aeropuerto de Barcelona",
+                "km": "~110 km",
+                "time": "~1h 15min",
+                "mapsUrl": "https://www.google.com/maps/dir/Barcelona+El+Prat+Airport/Mas+Corbella,+Alcover,+Tarragona"
+            },
+            {
+                "city": "Vallès Occidental",
+                "km": "~105 km",
+                "time": "~1h 10min",
+                "mapsUrl": "https://www.google.com/maps/dir/Sabadell,Spain/Mas+Corbella,+Alcover,+Tarragona"
+            },
+            {
+                "city": "Peralada",
+                "km": "~230 km",
+                "time": "~2h 20min",
+                "mapsUrl": "https://www.google.com/maps/dir/Peralada,Girona,Spain/Mas+Corbella,+Alcover,+Tarragona"
+            }
+        ]
+    }
+}
