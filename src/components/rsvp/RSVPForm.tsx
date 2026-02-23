@@ -54,7 +54,14 @@ export function RSVPForm({ dict }: Props) {
 
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!validate()) return
+        if (!validate()) {
+            // Scroll to first error field
+            setTimeout(() => {
+                const firstError = document.querySelector('[data-error="true"]')
+                firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            }, 50)
+            return
+        }
 
         setSubmitting(true)
         setServerError(null)
@@ -112,10 +119,11 @@ export function RSVPForm({ dict }: Props) {
             <div>
                 <label className="label">{r.name_label}</label>
                 <input
+                    data-error={!!errors.name}
                     value={form.name}
                     onChange={(e) => set('name', e.target.value)}
                     placeholder={r.name_placeholder}
-                    className="input-field"
+                    className={`input-field ${errors.name ? 'border-terracotta focus:border-terracotta focus:ring-terracotta/20' : ''}`}
                 />
                 {errors.name && <p className="text-terracotta text-xs mt-1">{errors.name}</p>}
             </div>
@@ -125,10 +133,11 @@ export function RSVPForm({ dict }: Props) {
                 <label className="label">{r.email_label}</label>
                 <input
                     type="email"
+                    data-error={!!errors.email}
                     value={form.email}
                     onChange={(e) => set('email', e.target.value)}
                     placeholder={r.email_placeholder}
-                    className="input-field"
+                    className={`input-field ${errors.email ? 'border-terracotta focus:border-terracotta focus:ring-terracotta/20' : ''}`}
                 />
                 {errors.email && <p className="text-terracotta text-xs mt-1">{errors.email}</p>}
             </div>
@@ -136,7 +145,7 @@ export function RSVPForm({ dict }: Props) {
             {/* Attending */}
             <div>
                 <label className="label">{r.attending_label}</label>
-                <div className="flex gap-3">
+                <div data-error={!!errors.attending} className={`flex gap-3 rounded-xl transition-all ${errors.attending ? 'ring-2 ring-terracotta/40' : ''}`}>
                     {(['yes', 'no'] as const).map((val) => (
                         <button
                             key={val}
