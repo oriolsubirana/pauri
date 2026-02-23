@@ -39,7 +39,7 @@ export function HeroSection({ dict, locale }: Props) {
                         alt="Celebració a Mas Corbella"
                         fill
                         unoptimized
-                        className="object-cover object-[center_55%] opacity-50"
+                        className="object-cover opacity-50"
                         priority
                     />
                 </div>
