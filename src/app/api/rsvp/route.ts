@@ -19,6 +19,12 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json()
+
+        // Honeypot: bots fill hidden fields, humans don't
+        if (body.website) {
+            return NextResponse.json({ success: true }, { status: 200 })
+        }
+
         const parsed = schema.safeParse(body)
 
         if (!parsed.success) {

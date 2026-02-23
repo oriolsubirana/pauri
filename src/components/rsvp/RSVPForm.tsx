@@ -63,6 +63,7 @@ export function RSVPForm({ dict }: Props) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    website: (document.querySelector('input[name="website"]') as HTMLInputElement)?.value ?? '',
                     name: form.name.trim(),
                     email: form.email.trim(),
                     attending: form.attending === 'yes',
@@ -102,6 +103,11 @@ export function RSVPForm({ dict }: Props) {
 
     return (
         <form onSubmit={onSubmit} className="space-y-6">
+            {/* Honeypot — hidden from humans, bots fill it */}
+            <div aria-hidden="true" tabIndex={-1} style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+                <input type="text" name="website" autoComplete="off" tabIndex={-1} />
+            </div>
+
             {/* Name */}
             <div>
                 <label className="label">{r.name_label}</label>
