@@ -6,7 +6,7 @@ const nextConfig = {
     // Image optimization config
     images: {
         formats: ['image/avif', 'image/webp'],
-        localPatterns: [{ pathname: '/photos/**' }, { pathname: '/venue/**' }],
+        localPatterns: [{ pathname: '/photos/**' }, { pathname: '/venue/**' }, { pathname: '/hero-illustration.png' }],
     },
 }
 
