@@ -5,6 +5,15 @@ import { GOOGLE_MAPS_URL } from '@/lib/utils'
 import type { Dictionary } from '@/dictionaries'
 import { MapPin, Clock, CalendarDays, UtensilsCrossed } from 'lucide-react'
 
+// Event details – update these if the event changes
+const GOOGLE_CALENDAR_URL =
+    'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+    '&text=Paula+%26+Oriol' +
+    '&dates=20260919T100000Z%2F20260919T200000Z' +
+    '&details=Aperitivo%2C+paella%2C+piscina+%26+m%C3%BAsica' +
+    '&location=Mas+Corbella%2C+Alcover%2C+Tarragona' +
+    '&sf=true&output=xml'
+
 export function EventInfoSection({ dict }: { dict: Dictionary }) {
     const ref = useScrollFadeIn()
     const e = dict.event
@@ -56,6 +65,19 @@ export function EventInfoSection({ dict }: { dict: Dictionary }) {
                                 </div>
                             </div>
                         ))}
+                    </div>
+
+                    {/* Save to calendar */}
+                    <div className="flex justify-center mt-10">
+                        <a
+                            href={GOOGLE_CALENDAR_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-olive text-white font-sans text-sm font-medium rounded-2xl shadow-card hover:bg-olive-dark transition-colors"
+                        >
+                            <CalendarDays className="w-4 h-4" />
+                            {e.calendar_cta}
+                        </a>
                     </div>
                 </div>
             </div>

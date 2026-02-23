@@ -21,7 +21,8 @@
         "type": "Finger food, paella, pool & music",
         "location_label": "Venue",
         "location_name": "Mas Corbella, Alcover, Tarragona",
-        "location_cta": "View on Google Maps"
+        "location_cta": "View on Google Maps",
+        "calendar_cta": "Save to calendar"
     },
     "timeline": {
         "title": "The Day",

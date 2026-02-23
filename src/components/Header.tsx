@@ -18,8 +18,8 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     return (
         <header
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-                    ? 'bg-background/95 backdrop-blur-md shadow-soft border-b border-sand'
-                    : 'bg-transparent'
+                ? 'bg-background/95 backdrop-blur-md shadow-soft border-b border-sand'
+                : 'bg-transparent'
                 }`}
         >
             <div className="container-main flex items-center justify-between h-16 md:h-20">
@@ -64,7 +64,7 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
 
             {/* Mobile menu */}
             {menuOpen && (
-                <div className="md:hidden bg-background/98 border-t border-sand px-6 py-4 flex flex-col gap-4">
+                <div className="md:hidden bg-background border-t border-sand px-6 py-4 flex flex-col gap-4 shadow-soft">
                     <a
                         href="#event"
                         onClick={() => setMenuOpen(false)}
@@ -86,7 +86,11 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                     >
                         {dict.nav.faq}
                     </a>
-                    <Link href={`/${locale}/rsvp`} className="btn-primary self-start text-xs px-5 py-2.5">
+                    <Link
+                        href={`/${locale}/rsvp`}
+                        onClick={() => setMenuOpen(false)}
+                        className="btn-primary self-start text-xs px-5 py-2.5"
+                    >
                         {dict.nav.rsvp}
                     </Link>
                 </div>

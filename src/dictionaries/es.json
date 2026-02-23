@@ -21,7 +21,8 @@
         "type": "Aperitivo, paella, piscina & música",
         "location_label": "Lugar",
         "location_name": "Mas Corbella, Alcover, Tarragona",
-        "location_cta": "Ver en Google Maps"
+        "location_cta": "Ver en Google Maps",
+        "calendar_cta": "Guardar en el calendario"
     },
     "timeline": {
         "title": "El día",
