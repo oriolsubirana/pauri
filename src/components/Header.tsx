@@ -44,6 +44,9 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                     <Link href={`/${locale}/rsvp`} className="btn-primary text-xs px-5 py-2.5 ml-2">
                         {dict.nav.rsvp}
                     </Link>
+                    <Link href="/lista" className="font-sans text-xs text-stone/40 hover:text-olive transition-colors">
+                        Admin
+                    </Link>
                     <LanguageSwitcher locale={locale} />
                 </nav>
 
@@ -92,6 +95,13 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                         className="btn-primary self-start text-xs px-5 py-2.5"
                     >
                         {dict.nav.rsvp}
+                    </Link>
+                    <Link
+                        href="/lista"
+                        onClick={() => setMenuOpen(false)}
+                        className="font-sans text-xs text-stone/40 hover:text-olive transition-colors self-start"
+                    >
+                        Lista invitados
                     </Link>
                 </div>
             )}

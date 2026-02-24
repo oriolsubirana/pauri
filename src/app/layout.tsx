@@ -4,6 +4,10 @@ import './globals.css'
 export const metadata: Metadata = {
     title: 'Paula & Oriol — 19 Setembre 2026',
     description: 'Una celebració amb amics. 19 de setembre de 2026.',
+    icons: {
+        icon: '/favicon.png',
+        apple: '/favicon.png',
+    },
 }
 
 export default function RootLayout({
