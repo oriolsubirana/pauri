@@ -349,7 +349,8 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        const { error } = await supabase.from('rsvps').insert([parsed.data])
+        const { locale, ...rsvpData } = parsed.data
+        const { error } = await supabase.from('rsvps').insert([rsvpData])
 
         if (error) {
             console.error('Supabase error:', error)
