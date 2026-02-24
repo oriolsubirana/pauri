@@ -360,6 +360,9 @@ export async function POST(req: NextRequest) {
         sendRsvpNotification(parsed.data).catch(err =>
             console.error('Email notification error:', err)
         )
+        sendGuestConfirmation(parsed.data).catch(err =>
+            console.error('Guest confirmation email error:', err)
+        )
 
         return NextResponse.json({ success: true }, { status: 200 })
     } catch (err) {
