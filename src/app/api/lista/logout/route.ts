@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
-export async function POST() {
+export async function POST(req: NextRequest) {
     const response = NextResponse.redirect(
-        new URL('/lista/login', process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000')
+        new URL('/lista/login', req.url)
     )
     response.cookies.set('dashboard_auth', '', {
         httpOnly: true,
