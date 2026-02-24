@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function DashboardLoginPage() {
-    const router = useRouter()
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
@@ -22,7 +20,7 @@ export default function DashboardLoginPage() {
             })
 
             if (res.ok) {
-                router.push('/lista')
+                window.location.replace('/lista')
             } else {
                 setError('Contraseña incorrecta')
             }

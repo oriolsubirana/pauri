@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { createHash } from 'crypto'
 
 const locales = ['ca', 'es', 'en']
-const defaultLocale = 'ca'
+const defaultLocale = 'es'
 
 // Next.js 16: file is named proxy.ts, export must also be named "proxy"
 export function proxy(request: NextRequest) {
@@ -37,7 +37,10 @@ export function proxy(request: NextRequest) {
     )
 
     if (pathnameHasLocale) {
-        return NextResponse.next()
+        const locale = pathname.split('/')[1]
+        const response = NextResponse.next()
+        response.cookies.set('locale', locale, { path: '/', sameSite: 'lax' })
+        return response
     }
 
     // Redirect root to default locale
