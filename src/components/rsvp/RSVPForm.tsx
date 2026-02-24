@@ -20,7 +20,7 @@ type Props = {
     locale: Locale
 }
 
-export function RSVPForm({ dict }: Props) {
+export function RSVPForm({ dict, locale }: Props) {
     const r = dict.rsvp
     const [form, setForm] = useState<FormState>({
         name: '',
@@ -85,6 +85,7 @@ export function RSVPForm({ dict }: Props) {
                                 : null,
                     song_request: null,
                     comments: form.comments || null,
+                    locale,
                 }),
             })
             if (!res.ok) throw new Error('Server error')
