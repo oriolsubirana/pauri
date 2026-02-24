@@ -16,6 +16,7 @@ const schema = z.object({
     staying_until_night: z.boolean().optional().nullable(),
     song_request: z.string().max(300).optional().nullable(),
     comments: z.string().max(1000).optional().nullable(),
+    locale: z.enum(['ca', 'es', 'en']).default('es'),
 })
 
 type RsvpRow = {
