@@ -34,15 +34,15 @@ export default function DashboardLoginPage() {
     return (
         <div
             style={{ fontFamily: 'Georgia, serif', background: '#F6F2EC', minHeight: '100vh' }}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center px-4"
         >
             <div
                 style={{ background: '#fff', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}
-                className="w-full max-w-sm p-8"
+                className="w-full max-w-sm p-6 sm:p-8"
             >
                 <h1
                     style={{ color: '#5E6B3C', fontFamily: 'Georgia, serif' }}
-                    className="text-2xl font-semibold mb-6 text-center"
+                    className="text-xl sm:text-2xl font-semibold mb-6 text-center"
                 >
                     Lista de invitados
                 </h1>
@@ -58,10 +58,12 @@ export default function DashboardLoginPage() {
                         style={{
                             border: '1px solid #d1d5db',
                             borderRadius: '8px',
-                            padding: '10px 14px',
+                            padding: '12px 14px',
                             fontFamily: 'Georgia, serif',
-                            fontSize: '15px',
+                            fontSize: '16px',
                             outline: 'none',
+                            width: '100%',
+                            boxSizing: 'border-box',
                         }}
                         onFocus={e => (e.target.style.borderColor = '#5E6B3C')}
                         onBlur={e => (e.target.style.borderColor = '#d1d5db')}
@@ -81,11 +83,12 @@ export default function DashboardLoginPage() {
                             color: '#fff',
                             border: 'none',
                             borderRadius: '8px',
-                            padding: '10px 14px',
+                            padding: '12px 14px',
                             fontFamily: 'Georgia, serif',
-                            fontSize: '15px',
+                            fontSize: '16px',
                             cursor: loading ? 'not-allowed' : 'pointer',
                             transition: 'background 0.2s',
+                            width: '100%',
                         }}
                     >
                         {loading ? 'Entrando…' : 'Entrar'}
