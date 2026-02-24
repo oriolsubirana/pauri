@@ -129,7 +129,7 @@
     },
     "contact": {
         "title": "Contact",
-        "subtitle": "If you have any questions or need help, write to us or give us a call",
+        "subtitle": "If you have any questions, write to us or give us a call",
         "email_label": "Email",
         "phone_label": "Phone"
     },
@@ -157,7 +157,7 @@
                 "mapsUrl": "https://www.google.com/maps/dir/Barcelona+El+Prat+Airport/Mas+Corbella,+Alcover,+Tarragona"
             },
             {
-                "city": "Vallés Occidental",
+                "city": "Vallès Occidental",
                 "km": "~105 km",
                 "time": "~1h 10min",
                 "mapsUrl": "https://www.google.com/maps/dir/Sabadell,Spain/Mas+Corbella,+Alcover,+Tarragona"

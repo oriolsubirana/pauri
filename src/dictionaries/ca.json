@@ -129,7 +129,7 @@
     },
     "contact": {
         "title": "Contacte",
-        "subtitle": "Si tens algun dubte o necessites ajuda, escriu-nos o truca'ns",
+        "subtitle": "Si tens algun dubte, escriu-nos o truca'ns",
         "email_label": "Correu",
         "phone_label": "Telèfon"
     },
@@ -145,7 +145,7 @@
         "getting_there_note": "Temps aproximats en cotxe",
         "origins": [
             {
-                "city": "Saragossa",
+                "city": "Zaragoza",
                 "km": "~260 km",
                 "time": "~2h 30min",
                 "mapsUrl": "https://www.google.com/maps/dir/Zaragoza,Spain/Mas+Corbella,+Alcover,+Tarragona"
