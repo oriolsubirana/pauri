@@ -12,15 +12,15 @@ type Props = {
 const metadataByLocale: Record<string, Metadata> = {
     ca: {
         title: 'Paula & Oriol — 19 Setembre 2026',
-        description: 'Una celebració amb amics. Dissabte 19 de setembre de 2026.',
+        description: 'Un dia per compartir amb amics i celebrar la vida.',
     },
     es: {
         title: 'Paula & Oriol — 19 Septiembre 2026',
-        description: 'Una celebración con amigos. Sábado 19 de septiembre de 2026.',
+        description: 'Un día para compartir con amigos y celebrar la vida.',
     },
     en: {
         title: 'Paula & Oriol — September 19th 2026',
-        description: 'A celebration with friends. Saturday September 19, 2026.',
+        description: 'A day to share with friends and celebrate life.',
     },
 }
 
