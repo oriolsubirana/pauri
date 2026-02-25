@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-    metadataBase: new URL(
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-    ),
     title: 'Paula & Oriol — 19 Setembre 2026',
     description: 'Una celebració amb amics. 19 de setembre de 2026.',
+    icons: {
+        icon: '/favicon.png.bak',
+        apple: '/favicon.png.bak',
+    },
 }
 
 export default function RootLayout({
