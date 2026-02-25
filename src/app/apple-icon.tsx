@@ -25,12 +25,11 @@ export default async function Icon() {
                 >
                     <div
                         style={{
-                            fontSize: 250,
+                            fontSize: 220,
                             color: '#5E6B3C',
                             fontFamily: '"Playfair Display"',
                             lineHeight: 1,
                             marginTop: 10,
-                            marginLeft: 15,
                         }}
                     >
                         P&O
@@ -60,11 +59,10 @@ export default async function Icon() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: 250,
+                        fontSize: 220,
                         color: '#5E6B3C',
                         lineHeight: 1,
                         marginTop: 10,
-                        marginLeft: 15,
                     }}
                 >
                     P&O
