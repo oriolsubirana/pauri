@@ -80,7 +80,7 @@ async function createOgImage() {
 
         ctx.fillStyle = '#C4714A';
         ctx.font = `italic 500 60px "Playfair Display"`;
-        ctx.fillText('19 de Septiembre de 2026', width / 2, height / 2 + 180);
+        ctx.fillText('19.09.2026', width / 2, height / 2 + 180);
 
         const buffer = canvas.toBuffer('image/png');
         fs.writeFileSync(path.join(__dirname, 'public', 'opengraph-image.png'), buffer);
