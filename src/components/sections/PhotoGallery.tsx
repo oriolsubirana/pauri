@@ -15,6 +15,16 @@ type Props = {
 export function PhotoGallery({ dict, photos, photosUrl }: Props) {
     const ref = useScrollFadeIn()
     const [lightbox, setLightbox] = useState<number | null>(null)
+    const [currentFrame, setCurrentFrame] = useState(0)
+
+    // Auto-playing sequence (GIF effect)
+    useEffect(() => {
+        if (photos.length <= 1) return
+        const interval = setInterval(() => {
+            setCurrentFrame((prev) => (prev + 1) % photos.length)
+        }, 500) // 350ms per frame for a medium-fast sequence
+        return () => clearInterval(interval)
+    }, [photos.length])
 
     // Keyboard navigation
     useEffect(() => {
@@ -40,24 +50,26 @@ export function PhotoGallery({ dict, photos, photosUrl }: Props) {
 
                     {photos.length > 0 ? (
                         <>
-                            {/* Uniform rectangular grid */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-4xl mx-auto mb-8">
-                                {photos.map((src, i) => (
-                                    <div
-                                        key={src}
-                                        onClick={() => setLightbox(i)}
-                                        className="relative aspect-[4/3] cursor-pointer overflow-hidden rounded-xl group"
-                                    >
-                                        <Image
-                                            src={src}
-                                            alt={`Foto ${i + 1}`}
-                                            fill
-                                            className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                            sizes="(max-width: 640px) 50vw, 33vw"
-                                        />
-                                        <div className="absolute inset-0 bg-olive/0 group-hover:bg-olive/10 transition-colors duration-300" />
+                            {/* Animated Sequence (GIF Effect) */}
+                            <div className="flex flex-col items-center justify-center mb-12">
+                                <div
+                                    className="relative w-full max-w-lg aspect-[4/5] sm:aspect-square bg-white p-3 pb-12 sm:p-4 sm:pb-16 rounded-sm shadow-xl cursor-pointer hover:scale-[1.02] transition-transform duration-300"
+                                    onClick={() => setLightbox(currentFrame)}
+                                >
+                                    <div className="relative w-full h-full overflow-hidden bg-sand-light">
+                                        {photos.map((src, i) => (
+                                            <Image
+                                                key={src}
+                                                src={src}
+                                                alt={`Foto ${i + 1}`}
+                                                fill
+                                                className={`object-cover transition-opacity duration-[200ms] ${i === currentFrame ? 'opacity-100' : 'opacity-0'}`}
+                                                sizes="(max-width: 640px) 100vw, 512px"
+                                                priority={i === 0}
+                                            />
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
 
                             {/* Google Photos link */}
