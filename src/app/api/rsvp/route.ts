@@ -7,56 +7,56 @@ import { z } from 'zod'
 export const runtime = 'nodejs'
 
 const schema = z.object({
-    name: z.string().min(1).max(200),
-    email: z.string().email(),
-    attending: z.boolean(),
-    adults_count: z.number().int().min(0).max(50).default(1),
-    kids_count: z.number().int().min(0).max(50).default(0),
-    dietary_restrictions: z.string().max(500).optional().nullable(),
-    staying_until_night: z.boolean().optional().nullable(),
-    song_request: z.string().max(300).optional().nullable(),
-    comments: z.string().max(1000).optional().nullable(),
-    locale: z.enum(['ca', 'es', 'en']).default('es'),
+  name: z.string().min(1).max(200),
+  email: z.string().email(),
+  attending: z.boolean(),
+  adults_count: z.number().int().min(0).max(50).default(1),
+  kids_count: z.number().int().min(0).max(50).default(0),
+  dietary_restrictions: z.string().max(500).optional().nullable(),
+  staying_until_night: z.boolean().optional().nullable(),
+  song_request: z.string().max(300).optional().nullable(),
+  comments: z.string().max(1000).optional().nullable(),
+  locale: z.enum(['ca', 'es', 'en']).default('es'),
 })
 
 type RsvpRow = {
-    name: string
-    email: string
-    attending: boolean
-    adults_count: number
-    kids_count: number
-    dietary_restrictions: string | null
-    staying_until_night: boolean | null
-    comments: string | null
-    created_at: string
+  name: string
+  email: string
+  attending: boolean
+  adults_count: number
+  kids_count: number
+  dietary_restrictions: string | null
+  staying_until_night: boolean | null
+  comments: string | null
+  created_at: string
 }
 
 async function sendRsvpNotification(newRsvp: z.infer<typeof schema>) {
-    const apiKey = process.env.RESEND_API_KEY
-    if (!apiKey) {
-        console.warn('RESEND_API_KEY not set, skipping email notification')
-        return
-    }
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    console.warn('RESEND_API_KEY not set, skipping email notification')
+    return
+  }
 
-    const resend = new Resend(apiKey)
+  const resend = new Resend(apiKey)
 
-    // Fetch all RSVPs (admin client bypasses RLS)
-    const { data: allRsvps, error } = await supabaseAdmin
-        .from('rsvps')
-        .select('name, email, attending, adults_count, kids_count, dietary_restrictions, staying_until_night, comments, created_at')
-        .order('created_at', { ascending: true })
+  // Fetch all RSVPs (admin client bypasses RLS)
+  const { data: allRsvps, error } = await supabaseAdmin
+    .from('rsvps')
+    .select('name, email, attending, adults_count, kids_count, dietary_restrictions, staying_until_night, comments, created_at')
+    .order('created_at', { ascending: true })
 
-    if (error) {
-        console.error('Error fetching RSVPs for email:', error)
-        return
-    }
+  if (error) {
+    console.error('Error fetching RSVPs for email:', error)
+    return
+  }
 
-    const confirmed = (allRsvps as RsvpRow[]).filter(r => r.attending)
-    const declined = (allRsvps as RsvpRow[]).filter(r => !r.attending)
-    const totalAdults = confirmed.reduce((sum, r) => sum + (r.adults_count ?? 0), 0)
-    const totalKids = confirmed.reduce((sum, r) => sum + (r.kids_count ?? 0), 0)
+  const confirmed = (allRsvps as RsvpRow[]).filter(r => r.attending)
+  const declined = (allRsvps as RsvpRow[]).filter(r => !r.attending)
+  const totalAdults = confirmed.reduce((sum, r) => sum + (r.adults_count ?? 0), 0)
+  const totalKids = confirmed.reduce((sum, r) => sum + (r.kids_count ?? 0), 0)
 
-    const confirmedRows = confirmed.map(r => `
+  const confirmedRows = confirmed.map(r => `
         <tr>
             <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;">${r.name}</td>
             <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;">${r.email}</td>
@@ -66,18 +66,18 @@ async function sendRsvpNotification(newRsvp: z.infer<typeof schema>) {
             <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;text-align:center;">${r.staying_until_night === true ? 'Sí' : r.staying_until_night === false ? 'No' : '—'}</td>
         </tr>`).join('')
 
-    const declinedRows = declined.map(r => `
+  const declinedRows = declined.map(r => `
         <tr>
             <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;">${r.name}</td>
             <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;">${r.email}</td>
             <td style="padding:6px 12px;border-bottom:1px solid #e5e7eb;">${r.comments ?? '—'}</td>
         </tr>`).join('')
 
-    const newRsvpBlock = newRsvp.attending
-        ? `<p style="color:#5E6B3C;font-weight:600;">✅ ${newRsvp.name} ha confirmado su asistencia (${newRsvp.adults_count} adulto${(newRsvp.adults_count ?? 1) !== 1 ? 's' : ''}${(newRsvp.kids_count ?? 0) > 0 ? ` + ${newRsvp.kids_count} niño${(newRsvp.kids_count ?? 0) !== 1 ? 's' : ''}` : ''})</p>`
-        : `<p style="color:#C4714A;font-weight:600;">❌ ${newRsvp.name} ha indicado que no puede asistir</p>`
+  const newRsvpBlock = newRsvp.attending
+    ? `<p style="color:#5E6B3C;font-weight:600;">✅ ${newRsvp.name} ha confirmado su asistencia (${newRsvp.adults_count} adulto${(newRsvp.adults_count ?? 1) !== 1 ? 's' : ''}${(newRsvp.kids_count ?? 0) > 0 ? ` + ${newRsvp.kids_count} niño${(newRsvp.kids_count ?? 0) !== 1 ? 's' : ''}` : ''})</p>`
+    : `<p style="color:#C4714A;font-weight:600;">❌ ${newRsvp.name} ha indicado que no puede asistir</p>`
 
-    const html = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
@@ -155,121 +155,121 @@ async function sendRsvpNotification(newRsvp: z.infer<typeof schema>) {
 </body>
 </html>`
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
+  const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
 
-    const notificationEmails = (process.env.NOTIFICATION_EMAILS ?? '')
-        .split(',')
-        .map(e => e.trim())
-        .filter(Boolean)
+  const notificationEmails = (process.env.NOTIFICATION_EMAILS ?? '')
+    .split(',')
+    .map(e => e.trim())
+    .filter(Boolean)
 
-    if (notificationEmails.length === 0) {
-        console.warn('NOTIFICATION_EMAILS not set, skipping email notification')
-        return
-    }
+  if (notificationEmails.length === 0) {
+    console.warn('NOTIFICATION_EMAILS not set, skipping email notification')
+    return
+  }
 
-    await resend.emails.send({
-        from: fromEmail,
-        to: notificationEmails,
-        subject: `${newRsvp.attending ? '✅' : '❌'} ${newRsvp.name} · RSVP Oriol & Paula`,
-        html,
-    })
+  await resend.emails.send({
+    from: fromEmail,
+    to: notificationEmails,
+    subject: `${newRsvp.attending ? '✅' : '❌'} ${newRsvp.name} · RSVP Oriol & Paula`,
+    html,
+  })
 }
 
 const guestEmailCopy = {
-    es: {
-        subject_yes: 'Confirmación recibida · Oriol & Paula · 19 septiembre',
-        subject_no: 'Gracias por avisarnos · Oriol & Paula',
-        greeting_yes: '¡Muchas gracias por confirmar tu asistencia!',
-        greeting_no: 'Gracias por avisarnos',
-        body_no: 'Lamentamos que no puedas acompañarnos, ¡te echaremos de menos! Si algo cambia antes del 31 de agosto, no dudes en escribirnos.',
-        summary_title: 'Tu confirmación',
-        adults: 'Adultos',
-        kids: 'Niños',
-        dietary: 'Restricciones alimentarias',
-        staying: 'Te quedas hasta el final (22:00)',
-        staying_yes: 'Sí',
-        staying_no: 'Me voy antes',
-        none: 'Ninguna',
-        info_title: 'El día',
-        date: 'Sábado 19 de septiembre de 2026 · 12:00–22:00',
-        location: 'Mas Corbella, Alcover, Tarragona',
-        maps_label: 'Abrir en Google Maps',
-        maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
-        parking: 'Os enviaremos la información de parking y acceso una semana antes del evento.',
-        footer: 'Con cariño, Paula & Oriol',
-    },
-    ca: {
-        subject_yes: 'Confirmació rebuda · Oriol & Paula · 19 setembre',
-        subject_no: 'Gràcies per avisar-nos · Oriol & Paula',
-        greeting_yes: 'Moltes gràcies per confirmar la teva assistència!',
-        greeting_no: 'Gràcies per avisar-nos',
-        body_no: "Llàstima que no puguis acompanyar-nos, t'enyorarem! Si res canvia abans del 31 d'agost, escriu-nos.",
-        summary_title: 'La teva confirmació',
-        adults: 'Adults',
-        kids: 'Nens',
-        dietary: 'Restriccions alimentàries',
-        staying: 'Et quedes fins al final (22:00)',
-        staying_yes: 'Sí',
-        staying_no: "Me'n vaig abans",
-        none: 'Cap',
-        info_title: 'El dia',
-        date: 'Dissabte 19 de setembre de 2026 · 12:00–22:00',
-        location: 'Mas Corbella, Alcover, Tarragona',
-        maps_label: 'Obrir a Google Maps',
-        maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
-        parking: "Us enviarem la informació d'aparcament i accés una setmana abans de l'esdeveniment.",
-        footer: 'Amb afecte, Paula & Oriol',
-    },
-    en: {
-        subject_yes: 'RSVP confirmed · Oriol & Paula · September 19th',
-        subject_no: 'Thanks for letting us know · Oriol & Paula',
-        greeting_yes: 'Thank you so much for confirming your attendance!',
-        greeting_no: 'Thanks for letting us know',
-        body_no: "We're sorry you can't make it — we'll miss you! If anything changes before August 31st, feel free to reach out.",
-        summary_title: 'Your RSVP',
-        adults: 'Adults',
-        kids: 'Kids',
-        dietary: 'Dietary restrictions',
-        staying: 'Staying until the end (22:00)',
-        staying_yes: 'Yes',
-        staying_no: 'Leaving earlier',
-        none: 'None',
-        info_title: 'The day',
-        date: 'Saturday, September 19, 2026 · 12:00–22:00',
-        location: 'Mas Corbella, Alcover, Tarragona',
-        maps_label: 'Open in Google Maps',
-        maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
-        parking: "We'll send you parking and access details one week before the event.",
-        footer: 'With love, Paula & Oriol',
-    },
+  es: {
+    subject_yes: 'Confirmación recibida · Oriol & Paula · 19 septiembre',
+    subject_no: 'Gracias por avisarnos · Oriol & Paula',
+    greeting_yes: '¡Muchas gracias por confirmar tu asistencia!',
+    greeting_no: 'Gracias por avisarnos',
+    body_no: 'Lamentamos que no puedas acompañarnos, ¡te echaremos de menos! Si algo cambia antes del 31 de agosto, no dudes en escribirnos.',
+    summary_title: 'Tu confirmación',
+    adults: 'Adultos',
+    kids: 'Niños',
+    dietary: 'Restricciones alimentarias',
+    staying: 'Te quedas hasta el final (22:00)',
+    staying_yes: 'Sí',
+    staying_no: 'Me voy antes',
+    none: 'Ninguna',
+    info_title: 'El día',
+    date: 'Sábado 19 de septiembre de 2026 · 12:00–22:00',
+    location: 'Mas Corbella, Alcover, Tarragona',
+    maps_label: 'Abrir en Google Maps',
+    maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
+    parking: 'Os enviaremos la información de parking y acceso una semana antes del evento.',
+    footer: 'Con cariño, Paula & Oriol',
+  },
+  ca: {
+    subject_yes: 'Confirmació rebuda · Oriol & Paula · 19 setembre',
+    subject_no: 'Gràcies per avisar-nos · Oriol & Paula',
+    greeting_yes: 'Moltes gràcies per confirmar la teva assistència!',
+    greeting_no: 'Gràcies per avisar-nos',
+    body_no: "Llàstima que no puguis acompanyar-nos, t'enyorarem! Si res canvia abans del 31 d'agost, escriu-nos.",
+    summary_title: 'La teva confirmació',
+    adults: 'Adults',
+    kids: 'Nens',
+    dietary: 'Restriccions alimentàries',
+    staying: 'Et quedes fins al final (22:00)',
+    staying_yes: 'Sí',
+    staying_no: "Me'n vaig abans",
+    none: 'Cap',
+    info_title: 'El dia',
+    date: 'Dissabte 19 de setembre de 2026 · 12:00–22:00',
+    location: 'Mas Corbella, Alcover, Tarragona',
+    maps_label: 'Obrir a Google Maps',
+    maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
+    parking: "Us enviarem la informació d'aparcament i accés una setmana abans de l'esdeveniment.",
+    footer: 'Amb afecte, Paula & Oriol',
+  },
+  en: {
+    subject_yes: 'RSVP confirmed · Oriol & Paula · September 19th',
+    subject_no: 'Thanks for letting us know · Oriol & Paula',
+    greeting_yes: 'Thank you so much for confirming your attendance!',
+    greeting_no: 'Thanks for letting us know',
+    body_no: "We're sorry you can't make it — we'll miss you! If anything changes before August 31st, feel free to reach out.",
+    summary_title: 'Your RSVP',
+    adults: 'Adults',
+    kids: 'Kids',
+    dietary: 'Dietary restrictions',
+    staying: 'Staying until the end (22:00)',
+    staying_yes: 'Yes',
+    staying_no: 'Leaving earlier',
+    none: 'None',
+    info_title: 'The day',
+    date: 'Saturday, September 19, 2026 · 12:00–22:00',
+    location: 'Mas Corbella, Alcover, Tarragona',
+    maps_label: 'Open in Google Maps',
+    maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
+    parking: "We'll send you parking and access details one week before the event.",
+    footer: 'With love, Paula & Oriol',
+  },
 }
 
 async function sendGuestConfirmation(rsvp: z.infer<typeof schema>) {
-    const apiKey = process.env.RESEND_API_KEY
-    if (!apiKey) return
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return
 
-    const resend = new Resend(apiKey)
-    const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
-    const locale = rsvp.locale ?? 'es'
-    const t = guestEmailCopy[locale]
+  const resend = new Resend(apiKey)
+  const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
+  const locale = rsvp.locale ?? 'es'
+  const t = guestEmailCopy[locale]
 
-    let html: string
+  let html: string
 
-    if (rsvp.attending) {
-        const summaryRows = [
-            `<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.adults}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.adults_count}</td></tr>`,
-            rsvp.kids_count > 0
-                ? `<tr style="background:#f9f7f3;"><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.kids}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.kids_count}</td></tr>`
-                : '',
-            rsvp.dietary_restrictions
-                ? `<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.dietary}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.dietary_restrictions}</td></tr>`
-                : `<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.dietary}</td><td style="padding:8px 16px;font-size:14px;color:#9ca3af;">${t.none}</td></tr>`,
-            rsvp.staying_until_night !== null && rsvp.staying_until_night !== undefined
-                ? `<tr style="background:#f9f7f3;"><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.staying}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.staying_until_night ? t.staying_yes : t.staying_no}</td></tr>`
-                : '',
-        ].join('')
+  if (rsvp.attending) {
+    const summaryRows = [
+      `<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.adults}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.adults_count}</td></tr>`,
+      rsvp.kids_count > 0
+        ? `<tr style="background:#f9f7f3;"><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.kids}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.kids_count}</td></tr>`
+        : '',
+      rsvp.dietary_restrictions
+        ? `<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.dietary}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.dietary_restrictions}</td></tr>`
+        : `<tr><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.dietary}</td><td style="padding:8px 16px;font-size:14px;color:#9ca3af;">${t.none}</td></tr>`,
+      rsvp.staying_until_night !== null && rsvp.staying_until_night !== undefined
+        ? `<tr style="background:#f9f7f3;"><td style="padding:8px 16px;color:#6b7280;font-size:14px;">${t.staying}</td><td style="padding:8px 16px;font-size:14px;font-weight:600;">${rsvp.staying_until_night ? t.staying_yes : t.staying_no}</td></tr>`
+        : '',
+    ].join('')
 
-        html = `<!DOCTYPE html>
+    html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:Georgia,serif;background:#F6F2EC;margin:0;padding:24px;">
   <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
@@ -302,8 +302,8 @@ async function sendGuestConfirmation(rsvp: z.infer<typeof schema>) {
     </div>
   </div>
 </body></html>`
-    } else {
-        html = `<!DOCTYPE html>
+  } else {
+    html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
 <body style="font-family:Georgia,serif;background:#F6F2EC;margin:0;padding:24px;">
   <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
@@ -321,53 +321,51 @@ async function sendGuestConfirmation(rsvp: z.infer<typeof schema>) {
     </div>
   </div>
 </body></html>`
-    }
+  }
 
-    await resend.emails.send({
-        from: fromEmail,
-        to: [rsvp.email],
-        subject: rsvp.attending ? t.subject_yes : t.subject_no,
-        html,
-    })
+  await resend.emails.send({
+    from: fromEmail,
+    to: [rsvp.email],
+    subject: rsvp.attending ? t.subject_yes : t.subject_no,
+    html,
+  })
 }
 
 export async function POST(req: NextRequest) {
-    try {
-        const body = await req.json()
+  try {
+    const body = await req.json()
 
-        // Honeypot: bots fill hidden fields, humans don't
-        if (body.website) {
-            return NextResponse.json({ success: true }, { status: 200 })
-        }
-
-        const parsed = schema.safeParse(body)
-
-        if (!parsed.success) {
-            return NextResponse.json(
-                { error: 'Invalid data', details: parsed.error.flatten() },
-                { status: 400 }
-            )
-        }
-
-        const { locale, ...rsvpData } = parsed.data
-        const { error } = await supabase.from('rsvps').insert([rsvpData])
-
-        if (error) {
-            console.error('Supabase error:', error)
-            return NextResponse.json({ error: 'Database error' }, { status: 500 })
-        }
-
-        // Send email notification (non-blocking)
-        sendRsvpNotification(parsed.data).catch(err =>
-            console.error('Email notification error:', err)
-        )
-        sendGuestConfirmation(parsed.data).catch(err =>
-            console.error('Guest confirmation email error:', err)
-        )
-
-        return NextResponse.json({ success: true }, { status: 200 })
-    } catch (err) {
-        console.error('Unexpected error:', err)
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    // Honeypot: bots fill hidden fields, humans don't
+    if (body.website) {
+      return NextResponse.json({ success: true }, { status: 200 })
     }
+
+    const parsed = schema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid data', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const { locale, ...rsvpData } = parsed.data
+    const { error } = await supabase.from('rsvps').insert([rsvpData])
+
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
+
+    // Send email notifications (Must be awaited in serverless environments)
+    await Promise.allSettled([
+      sendRsvpNotification(parsed.data).catch(err => console.error('Email notification error:', err)),
+      sendGuestConfirmation(parsed.data).catch(err => console.error('Guest confirmation email error:', err))
+    ])
+
+    return NextResponse.json({ success: true }, { status: 200 })
+  } catch (err) {
+    console.error('Unexpected error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }
