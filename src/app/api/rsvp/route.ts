@@ -195,7 +195,7 @@ const guestEmailCopy = {
     location: 'Mas Corbella, Alcover, Tarragona',
     maps_label: 'Abrir en Google Maps',
     maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
-    parking: 'Os enviaremos la información de parking y acceso una semana antes del evento.',
+    parking: 'Os enviaremos la información de parking y acceso una semana antes del evento. Si necesitáis ayuda para buscar alojamiento, no dudes en preguntarnos.',
     footer: 'Con cariño, Paula & Oriol',
   },
   ca: {
@@ -217,7 +217,7 @@ const guestEmailCopy = {
     location: 'Mas Corbella, Alcover, Tarragona',
     maps_label: 'Obrir a Google Maps',
     maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
-    parking: "Us enviarem la informació d'aparcament i accés una setmana abans de l'esdeveniment.",
+    parking: "Us enviarem la informació d'aparcament i accés una setmana abans de l'esdeveniment. Si necessiteu ajuda per buscar allotjament, no dubteu a preguntar-nos.",
     footer: 'Amb afecte, Paula & Oriol',
   },
   en: {
@@ -239,7 +239,7 @@ const guestEmailCopy = {
     location: 'Mas Corbella, Alcover, Tarragona',
     maps_label: 'Open in Google Maps',
     maps_url: 'https://maps.app.goo.gl/mVVaFuXkNsY3vTh96',
-    parking: "We'll send you parking and access details one week before the event.",
+    parking: "We'll send you parking and access details one week before the event. If you need help finding accommodation, don't hesitate to ask us.",
     footer: 'With love, Paula & Oriol',
   },
 }
