@@ -101,7 +101,7 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                         onClick={() => setMenuOpen(false)}
                         className="font-sans text-xs text-stone/40 hover:text-olive transition-colors self-start"
                     >
-                        Lista invitados
+                        Admin
                     </Link>
                 </div>
             )}
