@@ -56,7 +56,8 @@
     },
     "playlist": {
         "title": "The Playlist",
-        "subtitle": "Listen to the vibe we've put together — and add the song that can't be missing!"
+        "subtitle": "Listen to the vibe we've put together — and add the song that can't be missing!",
+        "cta": "Open in Spotify"
     },
     "photos": {
         "title": "Shared Album",

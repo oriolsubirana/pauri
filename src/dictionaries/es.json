@@ -56,7 +56,8 @@
     },
     "playlist": {
         "title": "La playlist",
-        "subtitle": "Escucha el ambiente que hemos preparado y añade tú la canción que no puede faltar."
+        "subtitle": "Escucha el ambiente que hemos preparado y añade tú la canción que no puede faltar.",
+        "cta": "Abrir en Spotify"
     },
     "photos": {
         "title": "Álbum compartido",

@@ -22,18 +22,30 @@ export function PlaylistSection({ dict }: { dict: Dictionary }) {
                     </div>
 
                     {embedUrl ? (
-                        <div className="max-w-xl mx-auto rounded-2xl overflow-hidden shadow-soft-lg">
-                            <iframe
-                                style={{ borderRadius: '16px' }}
-                                src={`${embedUrl}?utm_source=generator&theme=0`}
-                                width="100%"
-                                height="380"
-                                frameBorder="0"
-                                allowFullScreen
-                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                loading="lazy"
-                                title="Wedding Playlist"
-                            />
+                        <div className="max-w-xl mx-auto flex flex-col items-center gap-6">
+                            <div className="w-full rounded-2xl overflow-hidden shadow-soft-lg">
+                                <iframe
+                                    style={{ borderRadius: '16px' }}
+                                    src={`${embedUrl}?utm_source=generator&theme=0`}
+                                    width="100%"
+                                    height="380"
+                                    frameBorder="0"
+                                    allowFullScreen
+                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                    loading="lazy"
+                                    title="Wedding Playlist"
+                                />
+                            </div>
+                            {playlistUrl && (dict.playlist as any).cta && (
+                                <a
+                                    href={playlistUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center px-6 py-3 bg-olive text-white font-sans text-sm font-medium rounded-2xl shadow-card hover:bg-olive-dark transition-colors"
+                                >
+                                    {(dict.playlist as any).cta}
+                                </a>
+                            )}
                         </div>
                     ) : (
                         <div className="max-w-xl mx-auto rounded-2xl bg-sand border border-sand-dark flex items-center justify-center h-40 shadow-card">

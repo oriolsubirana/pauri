@@ -56,7 +56,8 @@
     },
     "playlist": {
         "title": "La playlist",
-        "subtitle": "Escolta l'ambient que hem preparat i afegeix-hi la cançó que no pot faltar!"
+        "subtitle": "Escolta l'ambient que hem preparat i afegeix-hi la cançó que no pot faltar!",
+        "cta": "Obrir a Spotify"
     },
     "photos": {
         "title": "Àlbum compartit",
