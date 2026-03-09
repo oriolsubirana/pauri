@@ -43,6 +43,10 @@ export function proxy(request: NextRequest) {
         const locale = pathname.split('/')[1]
         const response = NextResponse.next()
         response.cookies.set('locale', locale, { path: '/', sameSite: 'lax' })
+        // Prevent Netlify CDN from caching SSR HTML (avoids stale chunk references)
+        response.headers.set('Cache-Control', 'no-store, must-revalidate')
+        response.headers.set('CDN-Cache-Control', 'no-store')
+        response.headers.set('Netlify-CDN-Cache-Control', 'no-store')
         return response
     }
 
