@@ -9,6 +9,10 @@ import { CountdownSection } from '@/components/sections/CountdownSection'
 import { FAQSection } from '@/components/sections/FAQSection'
 import { ContactSection } from '@/components/sections/ContactSection'
 
+// Force server-rendering on every request to avoid stale pre-rendered HTML
+// that references old JS/CSS chunks after a new Netlify deploy.
+export const dynamic = 'force-dynamic'
+
 type Props = {
     params: Promise<{ locale: string }>
 }

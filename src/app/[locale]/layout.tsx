@@ -29,9 +29,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return metadataByLocale[locale] ?? metadataByLocale.ca
 }
 
-export async function generateStaticParams() {
-    return [{ locale: 'ca' }, { locale: 'es' }, { locale: 'en' }]
-}
+// Allow all locale params dynamically
+export const dynamicParams = true
 
 export default async function LocaleLayout({ children, params }: Props) {
     const { locale } = await params
