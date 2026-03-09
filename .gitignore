@@ -37,3 +37,6 @@ next-env.d.ts
 
 # plans
 /docs/plans
+
+# Local Netlify folder
+.netlify
