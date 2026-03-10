@@ -1,6 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+
+const errorMessages: Record<string, { title: string; button: string }> = {
+    ca: { title: 'Alguna cosa ha anat malament', button: 'Recarregar pàgina' },
+    es: { title: 'Algo ha salido mal', button: 'Recargar página' },
+    en: { title: 'Something went wrong', button: 'Reload page' },
+}
 
 export default function Error({
     error,
@@ -9,6 +15,11 @@ export default function Error({
     error: Error & { digest?: string }
     reset: () => void
 }) {
+    const messages = useMemo(() => {
+        const locale = window.location.pathname.split('/')[1] || 'ca'
+        return errorMessages[locale] ?? errorMessages.ca
+    }, [])
+
     useEffect(() => {
         // Auto-recover from ChunkLoadError by doing a hard reload
         if (
@@ -33,7 +44,7 @@ export default function Error({
             textAlign: 'center',
         }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
-                Something went wrong
+                {messages.title}
             </h2>
             <button
                 onClick={() => window.location.reload()}
@@ -47,7 +58,7 @@ export default function Error({
                     cursor: 'pointer',
                 }}
             >
-                Reload page
+                {messages.button}
             </button>
         </div>
     )
