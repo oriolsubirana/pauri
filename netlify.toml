@@ -2,9 +2,6 @@
   command = "rm -rf .next .netlify/cache && npm run build"
   publish = ".next"
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
 [build.environment]
   NEXT_USE_NETLIFY_EDGE = "false"
 
