@@ -38,7 +38,7 @@ export function HeroSection({ dict, locale }: Props) {
                         src="/hero-illustration.png"
                         alt="Celebració a Mas Corbella"
                         fill
-                        unoptimized
+                        sizes="100vw"
                         className="object-cover opacity-50"
                         priority
                     />

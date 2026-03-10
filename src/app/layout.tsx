@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -24,13 +25,19 @@ export const metadata: Metadata = {
     }
 }
 
-export default function RootLayout({
+const validLocales = ['ca', 'es', 'en']
+
+export default async function RootLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const cookieStore = await cookies()
+    const localeCookie = cookieStore.get('locale')?.value
+    const lang = localeCookie && validLocales.includes(localeCookie) ? localeCookie : 'ca'
+
     return (
-        <html lang="ca">
+        <html lang={lang}>
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
