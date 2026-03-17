@@ -77,7 +77,7 @@
         "items": [
             {
                 "q": "Hi ha codi de vestimenta?",
-                "a": "Roba còmoda i elegant d'estiu. Penseu que hi haurà piscina!"
+                "a": "Roba còmoda i elegant d'estiu. Això sí, el blanc el reservem per a la núvia, que només n'hi ha una! I penseu que hi haurà piscina."
             },
             {
                 "q": "Puc portar fills?",
@@ -89,7 +89,7 @@
             },
             {
                 "q": "Quan es tanquen les confirmacions?",
-                "a": "Abans del 31 d'agost de 2026, si us plau."
+                "a": "Abans del 31 de juliol de 2026, si us plau."
             },
             {
                 "q": "Quins allotjaments hi ha a prop?",
