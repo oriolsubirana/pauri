@@ -172,8 +172,8 @@ export function RSVPForm({ dict, locale }: Props) {
                 <>
                     {/* Adults + Kids count */}
                     <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4">
-                        <div>
-                            <label className="label">{r.adults_label}</label>
+                        <div className="flex flex-col">
+                            <label className="label flex-1">{r.adults_label}</label>
                             <input
                                 type="number"
                                 min={1}
@@ -183,8 +183,8 @@ export function RSVPForm({ dict, locale }: Props) {
                                 className="input-field"
                             />
                         </div>
-                        <div>
-                            <label className="label">{r.kids_label}</label>
+                        <div className="flex flex-col">
+                            <label className="label flex-1">{r.kids_label}</label>
                             <input
                                 type="number"
                                 min={0}
