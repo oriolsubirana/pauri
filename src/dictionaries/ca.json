@@ -3,6 +3,7 @@
         "rsvp": "Confirmar assistència",
         "event": "L'esdeveniment",
         "timeline": "El dia",
+        "accommodation": "Allotjament",
         "faq": "FAQ"
     },
     "hero": {
@@ -93,7 +94,11 @@
             },
             {
                 "q": "Quins allotjaments hi ha a prop?",
-                "a": "T'enviarem una llista d'opcions recomanades quan confirmeu."
+                "a": "Hem seleccionat dos hotels recomanats (Hotel Félix a Valls i Crisol La Selva a la Selva del Camp). Trobaràs tots els detalls a la secció Allotjament i transfer."
+            },
+            {
+                "q": "Hi haurà servei de transfer?",
+                "a": "Sí! A l'anada surt del centre de Tarragona a les 11:30 i després passa pels hotels recomanats fins a la casa. A la tornada, a les 23:00, primer deixa els hotels i després el centre de Tarragona."
             }
         ]
     },
@@ -137,6 +142,42 @@
     "footer": {
         "made_with": "Fet amb amor per",
         "couple": "Paula & Oriol"
+    },
+    "accommodation": {
+        "title": "Allotjament i transfer",
+        "subtitle": "Hem seleccionat uns hotels propers i organitzem un transfer d'anada i tornada perquè no t'hagis de preocupar pel cotxe.",
+        "hotels_title": "Hotels recomanats",
+        "hotels": [
+            {
+                "name": "Hotel Félix",
+                "location": "Valls",
+                "url": "https://felixhotel.net/"
+            },
+            {
+                "name": "Crisol La Selva",
+                "location": "La Selva del Camp",
+                "url": "https://www.crisollaselva.com/"
+            }
+        ],
+        "hotel_cta": "Visitar web",
+        "transfer_title": "Servei de transfer",
+        "transfer_subtitle": "A l'anada sortim del centre de Tarragona i passem pels hotels recomanats. A la tornada fem el camí invers: primer hotels i després centre de Tarragona.",
+        "transfer_departure_label": "Anada",
+        "transfer_departure_time": "11:30",
+        "transfer_departure_desc": "Sortida des del centre de Tarragona i, a continuació, recollida als hotels fins a la casa",
+        "transfer_return_label": "Tornada",
+        "transfer_return_time": "23:00",
+        "transfer_return_desc": "Sortida de la casa, primer als hotels i després al centre de Tarragona",
+        "transfer_note": "Si vols fer servir el transfer, contacta'ns directament i t'enviarem els punts de recollida exactes.",
+        "map": {
+            "title": "El mapa del tresor",
+            "venue_label": "Mas Corbella",
+            "venue_sub": "La casa",
+            "tarragona_label": "Tarragona",
+            "tarragona_sub": "Centre ciutat",
+            "legend_route": "Ruta del transfer",
+            "legend_venue": "La destinació"
+        }
     },
     "venue": {
         "title": "El lloc",

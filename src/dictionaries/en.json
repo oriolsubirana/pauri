@@ -3,6 +3,7 @@
         "rsvp": "RSVP",
         "event": "The Event",
         "timeline": "The Day",
+        "accommodation": "Stay",
         "faq": "FAQ"
     },
     "hero": {
@@ -93,7 +94,11 @@
             },
             {
                 "q": "Are there accommodation options nearby?",
-                "a": "We'll send a list of recommended options once you confirm."
+                "a": "We've picked two recommended hotels (Hotel Félix in Valls and Crisol La Selva in La Selva del Camp). You'll find all the details in the Stay & Transfer section."
+            },
+            {
+                "q": "Will there be a transfer service?",
+                "a": "Yes! On the way in it leaves Tarragona city centre at 11:30 and then picks up at the recommended hotels on the way to the venue. On the way back, at 23:00, it drops off at the hotels first and then at Tarragona city centre."
             }
         ]
     },
@@ -137,6 +142,42 @@
     "footer": {
         "made_with": "Made with love by",
         "couple": "Paula & Oriol"
+    },
+    "accommodation": {
+        "title": "Stay & Transfer",
+        "subtitle": "We've picked a couple of nearby hotels and are arranging a round-trip transfer so you don't have to worry about driving.",
+        "hotels_title": "Recommended hotels",
+        "hotels": [
+            {
+                "name": "Hotel Félix",
+                "location": "Valls",
+                "url": "https://felixhotel.net/"
+            },
+            {
+                "name": "Crisol La Selva",
+                "location": "La Selva del Camp",
+                "url": "https://www.crisollaselva.com/"
+            }
+        ],
+        "hotel_cta": "Visit website",
+        "transfer_title": "Transfer service",
+        "transfer_subtitle": "On the way in we leave from Tarragona city centre and then swing by the recommended hotels. On the way back we reverse the route: hotels first, then Tarragona city centre.",
+        "transfer_departure_label": "Outbound",
+        "transfer_departure_time": "11:30",
+        "transfer_departure_desc": "Departing from Tarragona city centre, then picking up at the hotels on the way to the venue",
+        "transfer_return_label": "Return",
+        "transfer_return_time": "23:00",
+        "transfer_return_desc": "Leaving the venue — first the hotels, then Tarragona city centre",
+        "transfer_note": "If you'd like to use the transfer, get in touch with us directly and we'll share the exact pick-up points.",
+        "map": {
+            "title": "The treasure map",
+            "venue_label": "Mas Corbella",
+            "venue_sub": "The venue",
+            "tarragona_label": "Tarragona",
+            "tarragona_sub": "City centre",
+            "legend_route": "Transfer route",
+            "legend_venue": "The destination"
+        }
     },
     "venue": {
         "title": "The Venue",

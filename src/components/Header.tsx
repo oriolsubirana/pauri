@@ -38,6 +38,9 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                     <a href="#timeline" className="font-sans text-sm text-stone hover:text-olive transition-colors">
                         {dict.nav.timeline}
                     </a>
+                    <a href="#accommodation" className="font-sans text-sm text-stone hover:text-olive transition-colors">
+                        {dict.nav.accommodation}
+                    </a>
                     <a href="#faq" className="font-sans text-sm text-stone hover:text-olive transition-colors">
                         {dict.nav.faq}
                     </a>
@@ -81,6 +84,13 @@ export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
                         className="font-sans text-sm text-stone hover:text-olive transition-colors"
                     >
                         {dict.nav.timeline}
+                    </a>
+                    <a
+                        href="#accommodation"
+                        onClick={() => setMenuOpen(false)}
+                        className="font-sans text-sm text-stone hover:text-olive transition-colors"
+                    >
+                        {dict.nav.accommodation}
                     </a>
                     <a
                         href="#faq"
