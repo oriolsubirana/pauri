@@ -27,7 +27,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
 
     return (
         <div className="w-full">
-            <div className="relative rounded-2xl overflow-hidden border border-sand bg-sand-light/60">
+            <div className="relative overflow-hidden bg-sand-light/60 border-y border-sand md:border md:rounded-2xl">
                 <svg
                     viewBox="0 0 800 380"
                     className="w-full h-auto block"
@@ -164,26 +164,26 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
 
                     {/* 1. Tarragona (bottom-right) — label above marker */}
                     <g>
-                        <text x={P_TARRAGONA.x} y={P_TARRAGONA.y - 38} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="15" fill="#5E6B3C" fontWeight="500">{m.tarragona_label}</text>
-                        <text x={P_TARRAGONA.x} y={P_TARRAGONA.y - 22} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10" fill="#A89880" letterSpacing="1">{m.tarragona_sub}</text>
+                        <text x={P_TARRAGONA.x} y={P_TARRAGONA.y - 38} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="17" fill="#5E6B3C" fontWeight="500">{m.tarragona_label}</text>
+                        <text x={P_TARRAGONA.x} y={P_TARRAGONA.y - 22} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="12" fill="#A89880" letterSpacing="1">{m.tarragona_sub}</text>
                         <circle cx={P_TARRAGONA.x} cy={P_TARRAGONA.y} r="11" fill="#FDFBF5" stroke="#5E6B3C" strokeWidth="1.8" />
-                        <text x={P_TARRAGONA.x} y={P_TARRAGONA.y + 4} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="12" fill="#5E6B3C" fontWeight="600">1</text>
+                        <text x={P_TARRAGONA.x} y={P_TARRAGONA.y + 4} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="13" fill="#5E6B3C" fontWeight="600">1</text>
                     </g>
 
                     {/* 2. Crisol La Selva (mid-left) — label below marker */}
                     <g>
                         <circle cx={P_CRISOL.x} cy={P_CRISOL.y} r="11" fill="#FDFBF5" stroke="#5E6B3C" strokeWidth="1.8" />
-                        <text x={P_CRISOL.x} y={P_CRISOL.y + 4} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="12" fill="#5E6B3C" fontWeight="600">2</text>
-                        <text x={P_CRISOL.x} y={P_CRISOL.y + 42} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="15" fill="#5E6B3C" fontWeight="500">{hotels[1].name}</text>
-                        <text x={P_CRISOL.x} y={P_CRISOL.y + 56} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10" fill="#A89880" letterSpacing="1">{hotels[1].location}</text>
+                        <text x={P_CRISOL.x} y={P_CRISOL.y + 4} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="13" fill="#5E6B3C" fontWeight="600">2</text>
+                        <text x={P_CRISOL.x} y={P_CRISOL.y + 42} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="17" fill="#5E6B3C" fontWeight="500">{hotels[1].name}</text>
+                        <text x={P_CRISOL.x} y={P_CRISOL.y + 56} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="12" fill="#A89880" letterSpacing="1">{hotels[1].location}</text>
                     </g>
 
                     {/* 3. Hotel Félix (top-right) — label below marker */}
                     <g>
                         <circle cx={P_FELIX.x} cy={P_FELIX.y} r="11" fill="#FDFBF5" stroke="#5E6B3C" strokeWidth="1.8" />
-                        <text x={P_FELIX.x} y={P_FELIX.y + 4} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="12" fill="#5E6B3C" fontWeight="600">3</text>
-                        <text x={P_FELIX.x} y={P_FELIX.y + 32} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="15" fill="#5E6B3C" fontWeight="500">{hotels[0].name}</text>
-                        <text x={P_FELIX.x} y={P_FELIX.y + 46} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10" fill="#A89880" letterSpacing="1">{hotels[0].location}</text>
+                        <text x={P_FELIX.x} y={P_FELIX.y + 4} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="13" fill="#5E6B3C" fontWeight="600">3</text>
+                        <text x={P_FELIX.x} y={P_FELIX.y + 32} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="17" fill="#5E6B3C" fontWeight="500">{hotels[0].name}</text>
+                        <text x={P_FELIX.x} y={P_FELIX.y + 46} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="12" fill="#A89880" letterSpacing="1">{hotels[0].location}</text>
                     </g>
 
                     {/* 4. Mas Corbella (top-left) — treasure X, label below */}
@@ -191,8 +191,8 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                         <circle cx={P_MAS.x} cy={P_MAS.y} r="17" fill="#FDFBF5" stroke="#C4714A" strokeWidth="2" />
                         <line x1={P_MAS.x - 8} y1={P_MAS.y - 8} x2={P_MAS.x + 8} y2={P_MAS.y + 8} stroke="#C4714A" strokeWidth="2.6" strokeLinecap="round" />
                         <line x1={P_MAS.x - 8} y1={P_MAS.y + 8} x2={P_MAS.x + 8} y2={P_MAS.y - 8} stroke="#C4714A" strokeWidth="2.6" strokeLinecap="round" />
-                        <text x={P_MAS.x + 40} y={P_MAS.y + 35} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="16" fill="#C4714A" fontWeight="600" fontStyle="italic">{m.venue_label}</text>
-                        <text x={P_MAS.x + 40} y={P_MAS.y + 49} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="10" fill="#A89880" letterSpacing="1.5">{m.venue_sub}</text>
+                        <text x={P_MAS.x + 40} y={P_MAS.y + 35} textAnchor="middle" fontFamily="'Playfair Display', serif" fontSize="18" fill="#C4714A" fontWeight="600" fontStyle="italic">{m.venue_label}</text>
+                        <text x={P_MAS.x + 40} y={P_MAS.y + 49} textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="12" fill="#A89880" letterSpacing="1.5">{m.venue_sub}</text>
                     </g>
 
                     {/* Mas Corbella — pencil sketch below label */}

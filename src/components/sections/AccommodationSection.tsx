@@ -58,10 +58,10 @@ export function AccommodationSection({ dict }: { dict: Dictionary }) {
                             <h3 className="font-serif text-xl text-olive">{a.transfer_title}</h3>
                         </div>
 
-                        <div className="bg-background rounded-2xl p-6 md:p-8 shadow-card border border-sand">
-                            <p className="font-sans text-sm text-stone mb-6">{a.transfer_subtitle}</p>
+                        <div className="bg-background rounded-2xl px-4 py-6 md:p-8 shadow-card border border-sand">
+                            <p className="font-sans text-sm text-stone mb-6 px-2 md:px-0">{a.transfer_subtitle}</p>
 
-                            <div className="mb-8">
+                            <div className="mb-8 -mx-4 md:mx-0">
                                 <TransferMap dict={dict} />
                             </div>
 
