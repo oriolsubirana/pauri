@@ -13,37 +13,81 @@ export type RsvpRow = {
     staying_until_night: boolean | null
     song_request: string | null
     comments: string | null
+    needs_transfer: boolean | null
+    sleeps_over: boolean | null
     created_at: string
 }
 
-type SortField = 'name' | 'people' | 'staying_until_night' | 'created_at'
+type SortField = 'name' | 'people' | 'staying_until_night' | 'needs_transfer' | 'sleeps_over' | 'created_at'
 type SortDir = 'asc' | 'desc'
+type ToggleField = 'needs_transfer' | 'sleeps_over'
+
+function triBoolRank(v: boolean | null): number {
+    return v === true ? 0 : v === false ? 1 : 2
+}
 
 function sortConfirmed(rows: RsvpRow[], field: SortField, dir: SortDir): RsvpRow[] {
     return [...rows].sort((a, b) => {
         let v = 0
         if (field === 'name') v = a.name.localeCompare(b.name)
         else if (field === 'people') v = ((a.adults_count ?? 0) + (a.kids_count ?? 0)) - ((b.adults_count ?? 0) + (b.kids_count ?? 0))
-        else if (field === 'staying_until_night') {
-            const va = a.staying_until_night === true ? 0 : a.staying_until_night === false ? 1 : 2
-            const vb = b.staying_until_night === true ? 0 : b.staying_until_night === false ? 1 : 2
-            v = va - vb
-        }
+        else if (field === 'staying_until_night') v = triBoolRank(a.staying_until_night) - triBoolRank(b.staying_until_night)
+        else if (field === 'needs_transfer') v = triBoolRank(a.needs_transfer) - triBoolRank(b.needs_transfer)
+        else if (field === 'sleeps_over') v = triBoolRank(a.sleeps_over) - triBoolRank(b.sleeps_over)
         else if (field === 'created_at') v = a.created_at.localeCompare(b.created_at)
         return dir === 'asc' ? v : -v
     })
 }
 
-export default function GuestDashboard({ rsvps }: { rsvps: RsvpRow[] }) {
+export default function GuestDashboard({ rsvps: initialRsvps }: { rsvps: RsvpRow[] }) {
+    const [rsvps, setRsvps] = useState<RsvpRow[]>(initialRsvps)
     const [search, setSearch] = useState('')
     const [sortField, setSortField] = useState<SortField>('created_at')
     const [sortDir, setSortDir] = useState<SortDir>('asc')
+    const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
 
     const confirmed = useMemo(() => rsvps.filter(r => r.attending), [rsvps])
     const declined = useMemo(() => rsvps.filter(r => !r.attending), [rsvps])
 
     const totalAdults = confirmed.reduce((sum, r) => sum + (r.adults_count ?? 0), 0)
     const totalKids = confirmed.reduce((sum, r) => sum + (r.kids_count ?? 0), 0)
+    const totalSleepsOver = confirmed
+        .filter(r => r.sleeps_over === true)
+        .reduce((sum, r) => sum + (r.adults_count ?? 0) + (r.kids_count ?? 0), 0)
+    const totalNeedsTransfer = confirmed
+        .filter(r => r.needs_transfer === true)
+        .reduce((sum, r) => sum + (r.adults_count ?? 0) + (r.kids_count ?? 0), 0)
+
+    async function toggle(row: RsvpRow, field: ToggleField) {
+        // Cycle: null → true → false → null
+        const current = row[field]
+        const next = current === null ? true : current === true ? false : null
+
+        const id = String(row.id)
+        setPendingIds(prev => new Set(prev).add(id))
+        // Optimistic update
+        setRsvps(prev => prev.map(r => r.id === row.id ? { ...r, [field]: next } : r))
+
+        try {
+            const res = await fetch(`/api/lista/rsvp/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [field]: next }),
+            })
+            if (!res.ok) throw new Error('Update failed')
+        } catch (err) {
+            console.error(err)
+            // Revert
+            setRsvps(prev => prev.map(r => r.id === row.id ? { ...r, [field]: current } : r))
+            alert('No se ha podido guardar el cambio. Vuelve a intentarlo.')
+        } finally {
+            setPendingIds(prev => {
+                const s = new Set(prev)
+                s.delete(id)
+                return s
+            })
+        }
+    }
 
     const q = search.trim().toLowerCase()
 
@@ -104,10 +148,12 @@ export default function GuestDashboard({ rsvps }: { rsvps: RsvpRow[] }) {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
                     <StatCard label="Confirmados" value={confirmed.length} unit="personas" color="#5E6B3C" />
                     <StatCard label="Adultos" value={totalAdults} color="#5E6B3C" />
                     <StatCard label="Niños" value={totalKids} color="#5E6B3C" />
+                    <StatCard label="Duermen en casa" value={totalSleepsOver} unit="personas" color="#5E6B3C" />
+                    <StatCard label="Transfer" value={totalNeedsTransfer} unit="personas" color="#5E6B3C" />
                     <StatCard label="No asistirán" value={declined.length} color="#C4714A" />
                 </div>
 
@@ -155,6 +201,20 @@ export default function GuestDashboard({ rsvps }: { rsvps: RsvpRow[] }) {
                                                 <span style={{ fontSize: '12px', color: '#374151' }}>🕙 Hasta 22h: {r.staying_until_night ? 'Sí' : 'No'}</span>
                                             )}
                                         </div>
+                                        <div className="flex flex-wrap gap-2 pt-2">
+                                            <ToggleChip
+                                                label="🛏️ Duerme"
+                                                value={r.sleeps_over}
+                                                pending={pendingIds.has(String(r.id))}
+                                                onClick={() => toggle(r, 'sleeps_over')}
+                                            />
+                                            <ToggleChip
+                                                label="🚐 Transfer"
+                                                value={r.needs_transfer}
+                                                pending={pendingIds.has(String(r.id))}
+                                                onClick={() => toggle(r, 'needs_transfer')}
+                                            />
+                                        </div>
                                         {r.dietary_restrictions && <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>🥗 {r.dietary_restrictions}</p>}
                                         {r.song_request && <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>🎵 {r.song_request}</p>}
                                         {r.comments && <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>💬 {r.comments}</p>}
@@ -175,6 +235,12 @@ export default function GuestDashboard({ rsvps }: { rsvps: RsvpRow[] }) {
                                             <th style={{ ...thBase, textAlign: 'left' }}>Restricciones</th>
                                             <th style={thBtn} onClick={() => toggleSort('staying_until_night')}>
                                                 Hasta 22h <SortIcon field="staying_until_night" />
+                                            </th>
+                                            <th style={{ ...thBtn, textAlign: 'center' }} onClick={() => toggleSort('sleeps_over')}>
+                                                Duerme <SortIcon field="sleeps_over" />
+                                            </th>
+                                            <th style={{ ...thBtn, textAlign: 'center' }} onClick={() => toggleSort('needs_transfer')}>
+                                                Transfer <SortIcon field="needs_transfer" />
                                             </th>
                                             <th style={{ ...thBase, textAlign: 'left' }}>Canción</th>
                                             <th style={{ ...thBase, textAlign: 'left' }}>Comentarios</th>
@@ -212,6 +278,20 @@ export default function GuestDashboard({ rsvps }: { rsvps: RsvpRow[] }) {
                                                             ? <span style={{ background: '#f3f4f6', color: '#6b7280', borderRadius: '99px', padding: '2px 10px', fontSize: '12px', fontWeight: 500 }}>No</span>
                                                             : <span style={{ color: '#d1d5db' }}>—</span>
                                                     }
+                                                </td>
+                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                    <ToggleButton
+                                                        value={r.sleeps_over}
+                                                        pending={pendingIds.has(String(r.id))}
+                                                        onClick={() => toggle(r, 'sleeps_over')}
+                                                    />
+                                                </td>
+                                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                                    <ToggleButton
+                                                        value={r.needs_transfer}
+                                                        pending={pendingIds.has(String(r.id))}
+                                                        onClick={() => toggle(r, 'needs_transfer')}
+                                                    />
                                                 </td>
                                                 <TdTruncate>{r.song_request}</TdTruncate>
                                                 <TdTruncate>{r.comments}</TdTruncate>
@@ -298,6 +378,65 @@ function Section({ title, color, children }: { title: string; color: string; chi
             </div>
             {children}
         </div>
+    )
+}
+
+function ToggleButton({ value, pending, onClick }: { value: boolean | null; pending: boolean; onClick: () => void }) {
+    const label = value === true ? 'Sí' : value === false ? 'No' : '—'
+    const bg = value === true ? '#eef1e8' : value === false ? '#fef2f2' : '#f9fafb'
+    const color = value === true ? '#5E6B3C' : value === false ? '#b91c1c' : '#9ca3af'
+    const border = value === true ? '#d4dbb8' : value === false ? '#fecaca' : '#e5e7eb'
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={pending}
+            title="Click para cambiar (Sí / No / sin marcar)"
+            style={{
+                background: bg,
+                color,
+                border: `1px solid ${border}`,
+                borderRadius: '99px',
+                padding: '3px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: pending ? 'wait' : 'pointer',
+                opacity: pending ? 0.5 : 1,
+                minWidth: '44px',
+                fontFamily: 'Georgia, serif',
+                transition: 'all 0.15s',
+            }}
+        >
+            {label}
+        </button>
+    )
+}
+
+function ToggleChip({ label, value, pending, onClick }: { label: string; value: boolean | null; pending: boolean; onClick: () => void }) {
+    const state = value === true ? 'Sí' : value === false ? 'No' : '—'
+    const bg = value === true ? '#eef1e8' : value === false ? '#fef2f2' : '#f9fafb'
+    const color = value === true ? '#5E6B3C' : value === false ? '#b91c1c' : '#6b7280'
+    const border = value === true ? '#d4dbb8' : value === false ? '#fecaca' : '#e5e7eb'
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={pending}
+            style={{
+                background: bg,
+                color,
+                border: `1px solid ${border}`,
+                borderRadius: '99px',
+                padding: '4px 10px',
+                fontSize: '12px',
+                fontWeight: 500,
+                cursor: pending ? 'wait' : 'pointer',
+                opacity: pending ? 0.5 : 1,
+                fontFamily: 'Georgia, serif',
+            }}
+        >
+            {label}: {state}
+        </button>
     )
 }
 

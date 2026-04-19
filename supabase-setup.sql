@@ -12,8 +12,14 @@ create table rsvps (
   staying_until_night boolean,
   song_request text,
   comments text,
+  needs_transfer boolean,
+  sleeps_over boolean,
   created_at timestamp with time zone default now()
 );
+
+-- Migration for existing tables (idempotent):
+-- alter table rsvps add column if not exists needs_transfer boolean;
+-- alter table rsvps add column if not exists sleeps_over boolean;
 
 -- Enable Row Level Security
 alter table rsvps enable row level security;
