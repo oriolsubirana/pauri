@@ -18,6 +18,206 @@ const P = {
     TARRAGONA: { x: 340, y: 570 },
 }
 
+// --- Day / night cycle -----------------------------------------------------
+// One 30s loop retells the transfer: the combi leaves Tarragona at first light,
+// climbs to Mas Corbella while the sun rises (ida, 11:30), waits there through
+// midday and drives back down under the stars (vuelta, 23:00).
+const CYCLE = '30s'
+
+// Combi: up (0 → .42), parked at the venue (.42 → .5), back (.5 → .92), parked (.92 → 1)
+const BUS_KEY_POINTS = '0.03;0.97;0.97;0.03;0.03'
+const BUS_KEY_TIMES = '0;0.42;0.5;0.92;1'
+
+// Night veil over the paper — kept light so the ink stays readable
+const NIGHT_TIMES = '0;0.06;0.18;0.62;0.82;0.9;1'
+const NIGHT_OPACITY = '0.42;0.32;0;0;0.32;0.42;0.42'
+// Anything that only shines at night: stars, headlights, lit windows
+const NIGHT_LIGHTS = '0.9;0.7;0;0;0.7;0.9;0.9'
+// Warm sunrise / sunset wash
+const WARM_TIMES = '0;0.08;0.2;0.6;0.76;0.88;1'
+const WARM_OPACITY = '0;0.18;0.05;0.05;0.22;0;0'
+
+const SUN_FADE_TIMES = '0;0.09;0.62;0.74;1'
+const SUN_FADE = '0;1;1;0;0'
+const MOON_FADE_TIMES = '0;0.7;0.8;0.96;1'
+const MOON_FADE = '0;0;0.9;0.9;0'
+const MOON_TIMES = '0;0.62;1'
+// The moon climbs halfway up the same arc while the combi drives home
+const MOON_KEY_POINTS = '0;0.12;0.5'
+
+type Star = [x: number, y: number, r: number]
+
+function crescent(r: number) {
+    return `M 0 ${-r} A ${r} ${r} 0 1 0 0 ${r} A ${r * 1.5} ${r * 1.5} 0 0 1 0 ${-r} Z`
+}
+
+function sunRays(r: number) {
+    return Array.from({ length: 8 }, (_, i) => {
+        const a = (i * Math.PI) / 4
+        const cos = Math.cos(a)
+        const sin = Math.sin(a)
+        return {
+            key: i,
+            x1: +(cos * r * 1.45).toFixed(2),
+            y1: +(sin * r * 1.45).toFixed(2),
+            x2: +(cos * r * 2.05).toFixed(2),
+            y2: +(sin * r * 2.05).toFixed(2),
+        }
+    })
+}
+
+// --- Sky: the sun rises over the sea (bottom right) and sets inland ---------
+const LANDSCAPE_ARC = 'M 720 330 Q 400 -170 80 300'
+const LANDSCAPE_STARS: Star[] = [
+    [60, 60, 1.2], [104, 180, 1], [150, 44, 1.4], [196, 80, 0.9], [248, 150, 1.1],
+    [276, 52, 1.3], [318, 26, 1], [352, 196, 1.2], [404, 64, 0.9], [430, 148, 1.4],
+    [468, 32, 1.1], [492, 96, 1], [520, 220, 1.3], [556, 58, 1.2], [588, 140, 0.9],
+    [604, 196, 1.1], [640, 246, 1.3], [672, 150, 1], [700, 60, 1.4], [726, 214, 1.1],
+    [748, 120, 0.9], [268, 300, 1.2], [180, 336, 1], [404, 330, 1.1],
+]
+
+// Portrait has no room for a full arc: the sun climbs the right edge with the
+// combi and slides back down the same way as it drives home.
+const PORTRAIT_ARC = 'M 352 596 C 380 482 382 312 336 208'
+const PORTRAIT_STARS: Star[] = [
+    [40, 120, 1.1], [152, 60, 1.3], [224, 88, 1], [286, 44, 1.2], [386, 60, 1.1],
+    [392, 146, 1.3], [40, 200, 1], [112, 214, 1.2], [300, 168, 0.9], [386, 240, 1.3],
+    [44, 272, 1.1], [152, 258, 0.9], [286, 252, 1.2], [390, 320, 1], [46, 360, 1.3],
+    [130, 372, 1], [228, 352, 1.1], [318, 368, 1.2], [392, 412, 1], [60, 432, 1.2],
+    [168, 448, 0.9], [262, 428, 1.3], [382, 468, 1.1], [44, 506, 1], [130, 540, 1.2],
+    [212, 520, 0.9], [300, 560, 1.1], [390, 600, 1.3],
+]
+
+/**
+ * Sky layers for a map: the night veil, the dawn/dusk glow, the stars and the
+ * sun + moon travelling `arc`. Everything shares the same 30s loop as the bus,
+ * so sunrise happens on the way up and sunset on the way back.
+ */
+function SkyCycle({
+    id,
+    width,
+    height,
+    arc,
+    stars,
+    sunKeyPoints,
+    sunKeyTimes,
+    sunR = 13,
+    moonR = 9,
+}: {
+    id: string
+    width: number
+    height: number
+    arc: string
+    stars: Star[]
+    sunKeyPoints: string
+    sunKeyTimes: string
+    sunR?: number
+    moonR?: number
+}) {
+    const arcId = `sky-arc-${id}`
+
+    return (
+        <>
+            {/* Night veil */}
+            <rect width={width} height={height} fill="#0E2F8C">
+                <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={NIGHT_TIMES} values={NIGHT_OPACITY} />
+            </rect>
+
+            {/* Sunrise / sunset glow */}
+            <rect width={width} height={height} fill="#E9A45E">
+                <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={WARM_TIMES} values={WARM_OPACITY} />
+            </rect>
+
+            {/* Stars */}
+            <g fill="#FDFBF5">
+                <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={NIGHT_TIMES} values={NIGHT_LIGHTS} />
+                {stars.map(([x, y, r]) => (
+                    <circle key={`${x}-${y}`} cx={x} cy={y} r={r} />
+                ))}
+            </g>
+
+            {/* Path the sun and the moon travel (invisible) */}
+            <path id={arcId} d={arc} fill="none" stroke="none" />
+
+            {/* Sun */}
+            <g>
+                <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={SUN_FADE_TIMES} values={SUN_FADE} />
+                <circle r={sunR * 2.9} fill="#E9A45E" opacity="0.09" />
+                <circle r={sunR * 1.8} fill="#E9A45E" opacity="0.13" />
+                <g stroke="#C4714A" strokeWidth="0.7" strokeLinecap="round" opacity="0.45">
+                    {sunRays(sunR).map((ray) => (
+                        <line key={ray.key} x1={ray.x1} y1={ray.y1} x2={ray.x2} y2={ray.y2} />
+                    ))}
+                </g>
+                <circle r={sunR} fill="#EFBB78" stroke="#C4714A" strokeWidth="0.7" opacity="0.85" />
+                <animateMotion dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyPoints={sunKeyPoints} keyTimes={sunKeyTimes}>
+                    <mpath href={`#${arcId}`} />
+                </animateMotion>
+            </g>
+
+            {/* Moon */}
+            <g>
+                <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={MOON_FADE_TIMES} values={MOON_FADE} />
+                <g transform="rotate(-20)">
+                    <circle r={moonR * 2.4} fill="#DCE4F2" opacity="0.12" />
+                    <path d={crescent(moonR)} fill="#F6F1E2" stroke="#A89880" strokeWidth="0.4" />
+                </g>
+                <animateMotion dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyPoints={MOON_KEY_POINTS} keyTimes={MOON_TIMES}>
+                    <mpath href={`#${arcId}`} />
+                </animateMotion>
+            </g>
+        </>
+    )
+}
+
+/** The VW combi doing the round trip: up at daylight, back with the lights on. */
+function Combi({ routeId }: { routeId: string }) {
+    return (
+        <g>
+            {/* Flipped while parked at the venue so it faces the way it drives back */}
+            <g>
+                <animateTransform attributeName="transform" type="scale" calcMode="discrete" values="1 1;-1 1;1 1" keyTimes="0;0.46;0.96" dur={CYCLE} repeatCount="indefinite" />
+                <ellipse cx="0" cy="8" rx="13" ry="1.2" fill="#000" opacity="0.12" />
+                <path d="M -13 -1 L 14 -1 L 14 4 Q 14 5 13 5 L -13 5 Q -14 5 -14 4 L -14 0 Q -14 -1 -13 -1 Z" fill="#5BB1A8" />
+                <path d="M -13 -1 L -13 -7 Q -13 -9 -11 -9 L 7 -9 Q 13 -9 14 -4 L 14 -1 Z" fill="#F3ECDB" />
+                <line x1="-14" y1="-1" x2="14" y2="-1" stroke="#A89880" strokeWidth="0.35" />
+                <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" fill="#8FB9C1" opacity="0.75" />
+                <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                <rect x="1" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                {/* Windows lit after sunset */}
+                <g fill="#FFE2A0">
+                    <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={NIGHT_TIMES} values={NIGHT_LIGHTS} />
+                    <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" />
+                    <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" />
+                    <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" />
+                    <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" />
+                    <rect x="1" y="-7" width="3.4" height="4" rx="0.4" />
+                </g>
+                <circle cx="12.3" cy="1.2" r="1.1" fill="none" stroke="#F3ECDB" strokeWidth="0.4" />
+                <circle cx="12.8" cy="3" r="0.75" fill="#FFF7E0" stroke="#A89880" strokeWidth="0.2" />
+                {/* Headlight glow after sunset */}
+                <g fill="#FFE9A8">
+                    <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={NIGHT_TIMES} values={NIGHT_LIGHTS} />
+                    <circle cx="14.2" cy="2.8" r="3" opacity="0.3" />
+                    <circle cx="13.2" cy="2.9" r="1.5" opacity="0.9" />
+                </g>
+                <rect x="7" y="4" width="7.2" height="1" rx="0.3" fill="#F3ECDB" />
+                <circle cx="-8.5" cy="5.2" r="2.6" fill="#2D2A24" />
+                <circle cx="-8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
+                <circle cx="-8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
+                <circle cx="8.5" cy="5.2" r="2.6" fill="#2D2A24" />
+                <circle cx="8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
+                <circle cx="8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
+            </g>
+            <animateMotion dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyPoints={BUS_KEY_POINTS} keyTimes={BUS_KEY_TIMES}>
+                <mpath href={`#${routeId}`} />
+            </animateMotion>
+        </g>
+    )
+}
+
 export function TransferMap({ dict }: { dict: Dictionary }) {
     const m = dict.accommodation.map
     const hotels = dict.accommodation.hotels
@@ -59,6 +259,19 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <circle cx="40" cy="40" r="55" fill="#5E6B3C" opacity="0.025" />
                     <circle cx="390" cy="640" r="65" fill="#5E6B3C" opacity="0.02" />
 
+                    {/* Sunrise on the way up, sunset on the way back */}
+                    <SkyCycle
+                        id="p"
+                        width={420}
+                        height={680}
+                        arc={PORTRAIT_ARC}
+                        stars={PORTRAIT_STARS}
+                        sunKeyPoints="0;1;1;0;0"
+                        sunKeyTimes="0;0.42;0.5;0.74;1"
+                        sunR={11}
+                        moonR={8}
+                    />
+
                     {/* Decorative double border */}
                     <rect x="12" y="12" width="396" height="656" fill="none" stroke="#5E6B3C" strokeWidth="1.2" opacity="0.4" rx="14" />
                     <rect x="20" y="20" width="380" height="640" fill="none" stroke="#5E6B3C" strokeWidth="0.5" opacity="0.25" rx="10" strokeDasharray="4 4" />
@@ -87,30 +300,8 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                         opacity="0.75"
                     />
 
-                    {/* VW Combi following the route */}
-                    <g>
-                        <ellipse cx="0" cy="8" rx="13" ry="1.2" fill="#000" opacity="0.12" />
-                        <path d="M -13 -1 L 14 -1 L 14 4 Q 14 5 13 5 L -13 5 Q -14 5 -14 4 L -14 0 Q -14 -1 -13 -1 Z" fill="#5BB1A8" />
-                        <path d="M -13 -1 L -13 -7 Q -13 -9 -11 -9 L 7 -9 Q 13 -9 14 -4 L 14 -1 Z" fill="#F3ECDB" />
-                        <line x1="-14" y1="-1" x2="14" y2="-1" stroke="#A89880" strokeWidth="0.35" />
-                        <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="1" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <circle cx="12.3" cy="1.2" r="1.1" fill="none" stroke="#F3ECDB" strokeWidth="0.4" />
-                        <circle cx="12.8" cy="3" r="0.75" fill="#FFF7E0" stroke="#A89880" strokeWidth="0.2" />
-                        <rect x="7" y="4" width="7.2" height="1" rx="0.3" fill="#F3ECDB" />
-                        <circle cx="-8.5" cy="5.2" r="2.6" fill="#2D2A24" />
-                        <circle cx="-8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
-                        <circle cx="-8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
-                        <circle cx="8.5" cy="5.2" r="2.6" fill="#2D2A24" />
-                        <circle cx="8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
-                        <circle cx="8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
-                        <animateMotion dur="16s" repeatCount="indefinite">
-                            <mpath href="#transfer-route-portrait" />
-                        </animateMotion>
-                    </g>
+                    {/* VW Combi doing the round trip */}
+                    <Combi routeId="transfer-route-portrait" />
 
                     {/* Compass rose bottom-left */}
                     <g transform="translate(58, 620)" opacity="0.6">
@@ -245,6 +436,17 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <circle cx="40" cy="30" r="55" fill="#5E6B3C" opacity="0.025" />
                     <circle cx="760" cy="350" r="70" fill="#5E6B3C" opacity="0.02" />
 
+                    {/* Sunrise on the way up, sunset on the way back */}
+                    <SkyCycle
+                        id="l"
+                        width={800}
+                        height={380}
+                        arc={LANDSCAPE_ARC}
+                        stars={LANDSCAPE_STARS}
+                        sunKeyPoints="0;1;1"
+                        sunKeyTimes="0;0.78;1"
+                    />
+
                     <rect x="12" y="12" width="776" height="356" fill="none" stroke="#5E6B3C" strokeWidth="1.2" opacity="0.4" rx="14" />
                     <rect x="20" y="20" width="760" height="340" fill="none" stroke="#5E6B3C" strokeWidth="0.5" opacity="0.25" rx="10" strokeDasharray="4 4" />
 
@@ -283,30 +485,8 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                         opacity="0.75"
                     />
 
-                    {/* VW Combi */}
-                    <g>
-                        <ellipse cx="0" cy="8" rx="13" ry="1.2" fill="#000" opacity="0.12" />
-                        <path d="M -13 -1 L 14 -1 L 14 4 Q 14 5 13 5 L -13 5 Q -14 5 -14 4 L -14 0 Q -14 -1 -13 -1 Z" fill="#5BB1A8" />
-                        <path d="M -13 -1 L -13 -7 Q -13 -9 -11 -9 L 7 -9 Q 13 -9 14 -4 L 14 -1 Z" fill="#F3ECDB" />
-                        <line x1="-14" y1="-1" x2="14" y2="-1" stroke="#A89880" strokeWidth="0.35" />
-                        <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <rect x="1" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                        <circle cx="12.3" cy="1.2" r="1.1" fill="none" stroke="#F3ECDB" strokeWidth="0.4" />
-                        <circle cx="12.8" cy="3" r="0.75" fill="#FFF7E0" stroke="#A89880" strokeWidth="0.2" />
-                        <rect x="7" y="4" width="7.2" height="1" rx="0.3" fill="#F3ECDB" />
-                        <circle cx="-8.5" cy="5.2" r="2.6" fill="#2D2A24" />
-                        <circle cx="-8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
-                        <circle cx="-8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
-                        <circle cx="8.5" cy="5.2" r="2.6" fill="#2D2A24" />
-                        <circle cx="8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
-                        <circle cx="8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
-                        <animateMotion dur="14s" repeatCount="indefinite">
-                            <mpath href="#transfer-route" />
-                        </animateMotion>
-                    </g>
+                    {/* VW Combi doing the round trip */}
+                    <Combi routeId="transfer-route" />
 
                     {/* Compass */}
                     <g transform="translate(72, 310)" opacity="0.6">
