@@ -94,9 +94,11 @@ const WAITING_IN_TARRAGONA: Timing = {
     keyTimes: `0;${LEAVES_HOME};${BACK_HOME};${round4(BACK_HOME + 0.03)};1`,
     values: '0.85;0;0;0.85;0.85',
 }
-const ARRIVING_AT_THE_VENUE: Timing = {
-    keyTimes: `0;${REACHES_VENUE};${round4(REACHES_VENUE + 0.03)};${round4(LEAVES_VENUE - 0.03)};${LEAVES_VENUE};1`,
-    values: '0;0;0.85;0.85;0;0',
+// Guests spill out when the combi arrives and stay in front of the house all
+// night — the loop wraps around, so they only head inside once it is light again
+const AT_THE_VENUE: Timing = {
+    keyTimes: `0;0.12;0.16;${REACHES_VENUE};${round4(REACHES_VENUE + 0.03)};1`,
+    values: '0.85;0.85;0;0;0.85;0.85',
 }
 
 // The shadow swings with the sun: long at dawn, short at midday, long at dusk
@@ -482,7 +484,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <Passengers x={306} y={574} timing={WAITING_IN_TARRAGONA} />
                     <Passengers x={66} y={314} timing={waitingAt(portraitTrip.crisol)} />
                     <Passengers x={306} y={104} timing={waitingAt(portraitTrip.felix)} />
-                    <Passengers x={80} y={207} timing={ARRIVING_AT_THE_VENUE} scale={0.9} />
+                    <Passengers x={80} y={207} timing={AT_THE_VENUE} scale={0.9} />
 
                     {/* Compass rose bottom-left */}
                     <g transform="translate(58, 620)" opacity="0.6">
@@ -694,7 +696,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <Passengers x={568} y={314} timing={WAITING_IN_TARRAGONA} />
                     <Passengers x={188} y={213} timing={waitingAt(landscapeTrip.crisol)} />
                     <Passengers x={700} y={58} timing={waitingAt(landscapeTrip.felix)} />
-                    <Passengers x={100} y={170} timing={ARRIVING_AT_THE_VENUE} scale={0.9} />
+                    <Passengers x={100} y={170} timing={AT_THE_VENUE} scale={0.9} />
 
                     {/* Compass */}
                     <g transform="translate(72, 310)" opacity="0.6">

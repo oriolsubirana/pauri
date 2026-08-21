@@ -23,7 +23,9 @@
         "location_label": "Venue",
         "location_name": "Mas Corbella, Alcover, Tarragona",
         "location_cta": "View on Google Maps",
-        "calendar_cta": "Save to calendar"
+        "calendar_cta": "Save to calendar",
+        "calendar_google": "Google Calendar",
+        "calendar_apple": "Apple Calendar"
     },
     "timeline": {
         "title": "The Day",

@@ -1,20 +1,12 @@
 'use client'
 
 import { useScrollFadeIn } from '@/lib/useScrollFadeIn'
-import { GOOGLE_MAPS_URL } from '@/lib/utils'
+import { GOOGLE_MAPS_URL, googleCalendarUrl, icsUrl } from '@/lib/utils'
 import type { Dictionary } from '@/dictionaries'
+import type { Locale } from '@/dictionaries/types'
 import { MapPin, Clock, CalendarDays, UtensilsCrossed } from 'lucide-react'
 
-// Event details – update these if the event changes
-const GOOGLE_CALENDAR_URL =
-    'https://calendar.google.com/calendar/render?action=TEMPLATE' +
-    '&text=Paula+%26+Oriol' +
-    '&dates=20260919T100000Z%2F20260919T200000Z' +
-    '&details=Aperitivo%2C+paella%2C+piscina+%26+m%C3%BAsica' +
-    '&location=Mas+Corbella%2C+Alcover%2C+Tarragona' +
-    '&sf=true&output=xml'
-
-export function EventInfoSection({ dict }: { dict: Dictionary }) {
+export function EventInfoSection({ dict, locale }: { dict: Dictionary; locale: Locale }) {
     const ref = useScrollFadeIn()
     const e = dict.event
 
@@ -67,17 +59,28 @@ export function EventInfoSection({ dict }: { dict: Dictionary }) {
                         ))}
                     </div>
 
-                    {/* Save to calendar */}
-                    <div className="flex justify-center mt-10">
-                        <a
-                            href={GOOGLE_CALENDAR_URL}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-olive text-white font-sans text-sm font-medium rounded-2xl shadow-card hover:bg-olive-dark transition-colors"
-                        >
-                            <CalendarDays className="w-4 h-4" />
+                    {/* Save to calendar — Google opens its form, Apple gets an .ics */}
+                    <div className="flex flex-col items-center gap-4 mt-10">
+                        <p className="flex items-center gap-2 font-sans text-xs tracking-widest uppercase text-stone">
+                            <CalendarDays className="w-4 h-4 text-olive" />
                             {e.calendar_cta}
-                        </a>
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-3">
+                            <a
+                                href={googleCalendarUrl(locale)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center px-6 py-3 bg-olive text-white font-sans text-sm font-medium rounded-2xl shadow-card hover:bg-olive-dark transition-colors"
+                            >
+                                {e.calendar_google}
+                            </a>
+                            <a
+                                href={icsUrl(locale)}
+                                className="inline-flex items-center justify-center px-6 py-3 bg-background text-olive border border-olive/30 font-sans text-sm font-medium rounded-2xl shadow-card hover:border-olive/60 hover:text-olive-dark transition-colors"
+                            >
+                                {e.calendar_apple}
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
