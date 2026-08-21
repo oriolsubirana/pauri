@@ -25,7 +25,7 @@ export default async function HomePage({ params }: Props) {
     return (
         <>
             <HeroSection dict={dict} locale={locale as Locale} />
-            <EventInfoSection dict={dict} />
+            <EventInfoSection dict={dict} locale={locale as Locale} />
             <VenueSectionWrapper dict={dict} />
             <AccommodationSection dict={dict} />
             <TimelineSection dict={dict} />
