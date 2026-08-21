@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, type ReactNode } from 'react'
 import type { Dictionary } from '@/dictionaries'
 
 // --- Landscape (desktop) layout — viewBox 800 x 380 ---
@@ -23,10 +24,83 @@ const P = {
 // climbs to Mas Corbella while the sun rises (ida, 11:30), waits there through
 // midday and drives back down under the stars (vuelta, 23:00).
 const CYCLE = '30s'
+const MIDDAY = 13.9 // seconds into the loop: parked at the venue, guests out, sun at its highest
 
-// Combi: up (0 → .42), parked at the venue (.42 → .5), back (.5 → .92), parked (.92 → 1)
-const BUS_KEY_POINTS = '0.03;0.97;0.97;0.03;0.03'
-const BUS_KEY_TIMES = '0;0.42;0.5;0.92;1'
+// --- The stops -------------------------------------------------------------
+// The combi waits at every pick-up while people get on (ida) or off (vuelta).
+const PARK = 0.03 // it halts just short of a marker, so it never covers the number
+const DWELL = 0.04 // how long it waits at a pick-up
+const LEAVES_HOME = 0.05 // departs Tarragona
+const REACHES_VENUE = 0.42
+const LEAVES_VENUE = 0.5
+const BACK_HOME = 0.92
+
+// `at` is where the hotel sits along the route, `halt` where the combi pulls up:
+// a bus-length away, on whichever side leaves the marker and its label visible.
+type Stop = { at: number; halt: number }
+type Stops = { crisol: Stop; felix: Stop }
+
+const LANDSCAPE_STOPS: Stops = {
+    crisol: { at: 0.2705, halt: 0.2514 },
+    felix: { at: 0.6135, halt: 0.5944 },
+}
+const PORTRAIT_STOPS: Stops = {
+    crisol: { at: 0.3725, halt: 0.4015 },
+    felix: { at: 0.722, halt: 0.751 },
+}
+
+const round4 = (n: number) => +n.toFixed(4)
+
+/**
+ * Turns the stop positions into the combi's keyPoints/keyTimes plus the instant
+ * it pulls into each hotel, so passengers and marker pulses hang off one clock.
+ */
+function schedule({ crisol, felix }: Stops) {
+    const stopC = crisol.halt
+    const stopF = felix.halt
+    const legs = [stopC - PARK, stopF - stopC, 1 - PARK - stopF]
+    const span = 1 - 2 * PARK
+    const out = (REACHES_VENUE - LEAVES_HOME - 2 * DWELL) / span
+    const back = (BACK_HOME - LEAVES_VENUE - 2 * DWELL) / span
+
+    const crisolOut = round4(LEAVES_HOME + out * legs[0])
+    const felixOut = round4(crisolOut + DWELL + out * legs[1])
+    const felixBack = round4(LEAVES_VENUE + back * legs[2])
+    const crisolBack = round4(felixBack + DWELL + back * legs[1])
+    const wait = (t: number) => round4(t + DWELL)
+
+    return {
+        keyPoints: [PARK, PARK, stopC, stopC, stopF, stopF, 1 - PARK, 1 - PARK, stopF, stopF, stopC, stopC, PARK, PARK].join(';'),
+        keyTimes: [
+            0, LEAVES_HOME,
+            crisolOut, wait(crisolOut), felixOut, wait(felixOut),
+            REACHES_VENUE, LEAVES_VENUE,
+            felixBack, wait(felixBack), crisolBack, wait(crisolBack),
+            BACK_HOME, 1,
+        ].join(';'),
+        crisol: [crisolOut, crisolBack] as [number, number],
+        felix: [felixOut, felixBack] as [number, number],
+    }
+}
+
+type Timing = { keyTimes: string; values: string }
+
+// Guests waiting at a hotel: they board on the way up, come back on the way down
+const waitingAt = ([out, back]: [number, number]): Timing => ({
+    keyTimes: `0;${out};${round4(out + DWELL)};${back};${round4(back + DWELL)};1`,
+    values: '0.85;0.85;0;0;0.85;0.85',
+})
+const WAITING_IN_TARRAGONA: Timing = {
+    keyTimes: `0;${LEAVES_HOME};${BACK_HOME};${round4(BACK_HOME + 0.03)};1`,
+    values: '0.85;0;0;0.85;0.85',
+}
+const ARRIVING_AT_THE_VENUE: Timing = {
+    keyTimes: `0;${REACHES_VENUE};${round4(REACHES_VENUE + 0.03)};${round4(LEAVES_VENUE - 0.03)};${LEAVES_VENUE};1`,
+    values: '0;0;0.85;0.85;0;0',
+}
+
+// The shadow swings with the sun: long at dawn, short at midday, long at dusk
+const SHADOW_TIMES = '0;0.09;0.25;0.42;0.58;0.7;0.8;1'
 
 // Night veil over the paper — kept light so the ink stays readable
 const NIGHT_TIMES = '0;0.06;0.18;0.62;0.82;0.9;1'
@@ -87,6 +161,95 @@ const PORTRAIT_STARS: Star[] = [
     [168, 448, 0.9], [262, 428, 1.3], [382, 468, 1.1], [44, 506, 1], [130, 540, 1.2],
     [212, 520, 0.9], [300, 560, 1.1], [390, 600, 1.3],
 ]
+
+/** Anything that only lights up after sunset: bus windows, headlights, the house. */
+function NightLight({ children }: { children: ReactNode }) {
+    return (
+        <g fill="#FFE2A0" stroke="none" opacity="0">
+            <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={NIGHT_TIMES} values={NIGHT_LIGHTS} />
+            {children}
+        </g>
+    )
+}
+
+/** A ring that flares out of a stop when the combi pulls in — twice per loop. */
+function StopPulse({ cx, cy, r, at, color = '#5E6B3C' }: { cx: number; cy: number; r: number; at: [number, number]; color?: string }) {
+    const flare = 0.04
+    const [out, back] = at
+    const keyTimes = `0;${out};${round4(out + flare)};${round4(out + flare + 0.001)};${back};${round4(back + flare)};1`
+
+    return (
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="1.4" opacity="0">
+            <animate attributeName="r" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={keyTimes} values={`${r};${r};${r * 2.1};${r};${r};${r * 2.1};${r}`} />
+            <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={keyTimes} values="0;0.5;0;0;0.5;0;0" />
+        </circle>
+    )
+}
+
+// Two grown-ups and a kid, drawn in the same pencil as the rest of the map
+const GUESTS = [
+    { dx: -5.5, h: 1 },
+    { dx: 0, h: 1.08 },
+    { dx: 5, h: 0.72 },
+]
+
+/** Guests at a stop: they fade out as they board and back in when dropped off. */
+function Passengers({ x, y, timing, scale = 1 }: { x: number; y: number; timing: Timing; scale?: number }) {
+    return (
+        <g transform={`translate(${x} ${y}) scale(${scale})`} stroke="#5E6B3C" strokeWidth="0.75" fill="none" strokeLinecap="round" opacity="0">
+            <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={timing.keyTimes} values={timing.values} />
+            {GUESTS.map((g) => (
+                <g key={g.dx} transform={`translate(${g.dx} 0) scale(${g.h})`}>
+                    <circle cx="0" cy="-4.6" r="1.15" fill="#FDFBF5" />
+                    <path d="M 0 -3.4 L 0 -1 M -1.5 -2.7 L 1.5 -2.7 M 0 -1 L -1.3 0.8 M 0 -1 L 1.3 0.8" />
+                </g>
+            ))}
+        </g>
+    )
+}
+
+/** A curl of smoke drawn in pencil, rising from the farmhouse chimney. */
+function ChimneySmoke({ x, y }: { x: number; y: number }) {
+    return (
+        <g transform={`translate(${x} ${y})`} stroke="#5E6B3C" fill="none" strokeWidth="0.35" strokeLinecap="round">
+            {[0, 2, 4].map((delay) => (
+                <path key={delay} d="M 0 0 q 2 -1.8 0.5 -3.6 q -1.6 -2 0.4 -3.8" opacity="0">
+                    <animateTransform attributeName="transform" type="translate" values="0 0;-1.4 -9" dur="6s" begin={`${delay}s`} repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0;0.6;0" dur="6s" begin={`${delay}s`} repeatCount="indefinite" />
+                </path>
+            ))}
+        </g>
+    )
+}
+
+/**
+ * SMIL ignores prefers-reduced-motion, so freeze the whole map at midday —
+ * combi parked at Mas Corbella, sun high — for anyone who asks for less motion.
+ */
+function useStillWhenReducedMotion() {
+    const ref = useRef<SVGSVGElement>(null)
+
+    useEffect(() => {
+        const svg = ref.current
+        if (!svg) return
+
+        const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+        const apply = () => {
+            if (query.matches) {
+                svg.setCurrentTime(MIDDAY)
+                svg.pauseAnimations()
+            } else {
+                svg.unpauseAnimations()
+            }
+        }
+
+        apply()
+        query.addEventListener('change', apply)
+        return () => query.removeEventListener('change', apply)
+    }, [])
+
+    return ref
+}
 
 /**
  * Sky layers for a map: the night veil, the dawn/dusk glow, the stars and the
@@ -171,13 +334,18 @@ function SkyCycle({
 }
 
 /** The VW combi doing the round trip: up at daylight, back with the lights on. */
-function Combi({ routeId }: { routeId: string }) {
+function Combi({ routeId, keyPoints, keyTimes }: { routeId: string; keyPoints: string; keyTimes: string }) {
     return (
         <g>
+            {/* Shadow: long at sunrise, short at midday, long the other way at dusk */}
+            <ellipse cy="8" ry="1.2" fill="#000">
+                <animate attributeName="cx" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={SHADOW_TIMES} values="0;-10;-5;0;5;10;0;0" />
+                <animate attributeName="rx" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={SHADOW_TIMES} values="13;20;15;11;15;20;13;13" />
+                <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={SHADOW_TIMES} values="0.05;0.1;0.13;0.15;0.13;0.09;0.05;0.05" />
+            </ellipse>
             {/* Flipped while parked at the venue so it faces the way it drives back */}
             <g>
                 <animateTransform attributeName="transform" type="scale" calcMode="discrete" values="1 1;-1 1;1 1" keyTimes="0;0.46;0.96" dur={CYCLE} repeatCount="indefinite" />
-                <ellipse cx="0" cy="8" rx="13" ry="1.2" fill="#000" opacity="0.12" />
                 <path d="M -13 -1 L 14 -1 L 14 4 Q 14 5 13 5 L -13 5 Q -14 5 -14 4 L -14 0 Q -14 -1 -13 -1 Z" fill="#5BB1A8" />
                 <path d="M -13 -1 L -13 -7 Q -13 -9 -11 -9 L 7 -9 Q 13 -9 14 -4 L 14 -1 Z" fill="#F3ECDB" />
                 <line x1="-14" y1="-1" x2="14" y2="-1" stroke="#A89880" strokeWidth="0.35" />
@@ -187,22 +355,20 @@ function Combi({ routeId }: { routeId: string }) {
                 <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
                 <rect x="1" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
                 {/* Windows lit after sunset */}
-                <g fill="#FFE2A0">
-                    <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={NIGHT_TIMES} values={NIGHT_LIGHTS} />
+                <NightLight>
                     <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" />
                     <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" />
                     <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" />
                     <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" />
                     <rect x="1" y="-7" width="3.4" height="4" rx="0.4" />
-                </g>
+                </NightLight>
                 <circle cx="12.3" cy="1.2" r="1.1" fill="none" stroke="#F3ECDB" strokeWidth="0.4" />
                 <circle cx="12.8" cy="3" r="0.75" fill="#FFF7E0" stroke="#A89880" strokeWidth="0.2" />
                 {/* Headlight glow after sunset */}
-                <g fill="#FFE9A8">
-                    <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={NIGHT_TIMES} values={NIGHT_LIGHTS} />
+                <NightLight>
                     <circle cx="14.2" cy="2.8" r="3" opacity="0.3" />
                     <circle cx="13.2" cy="2.9" r="1.5" opacity="0.9" />
-                </g>
+                </NightLight>
                 <rect x="7" y="4" width="7.2" height="1" rx="0.3" fill="#F3ECDB" />
                 <circle cx="-8.5" cy="5.2" r="2.6" fill="#2D2A24" />
                 <circle cx="-8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
@@ -211,7 +377,7 @@ function Combi({ routeId }: { routeId: string }) {
                 <circle cx="8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
                 <circle cx="8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
             </g>
-            <animateMotion dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyPoints={BUS_KEY_POINTS} keyTimes={BUS_KEY_TIMES}>
+            <animateMotion dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyPoints={keyPoints} keyTimes={keyTimes}>
                 <mpath href={`#${routeId}`} />
             </animateMotion>
         </g>
@@ -221,6 +387,10 @@ function Combi({ routeId }: { routeId: string }) {
 export function TransferMap({ dict }: { dict: Dictionary }) {
     const m = dict.accommodation.map
     const hotels = dict.accommodation.hotels
+    const portraitRef = useStillWhenReducedMotion()
+    const landscapeRef = useStillWhenReducedMotion()
+    const landscapeTrip = schedule(LANDSCAPE_STOPS)
+    const portraitTrip = schedule(PORTRAIT_STOPS)
 
     // Routes (ida order): Tarragona → Crisol → Félix → Mas Corbella
     const landscapeRoute = [
@@ -242,6 +412,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
             <div className="relative overflow-hidden bg-sand-light/60 border border-sand rounded-2xl">
                 {/* ------- PORTRAIT MAP (mobile) ------- */}
                 <svg
+                    ref={portraitRef}
                     viewBox="0 0 420 680"
                     className="w-full h-auto block md:hidden"
                     role="img"
@@ -301,7 +472,17 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     />
 
                     {/* VW Combi doing the round trip */}
-                    <Combi routeId="transfer-route-portrait" />
+                    <Combi routeId="transfer-route-portrait" keyPoints={portraitTrip.keyPoints} keyTimes={portraitTrip.keyTimes} />
+
+                    {/* Guests waiting at each stop, and the ring that flares when the combi pulls in */}
+                    <StopPulse cx={P.TARRAGONA.x} cy={P.TARRAGONA.y} r={13} at={[0.005, BACK_HOME]} />
+                    <StopPulse cx={P.CRISOL.x} cy={P.CRISOL.y} r={13} at={portraitTrip.crisol} />
+                    <StopPulse cx={P.FELIX.x} cy={P.FELIX.y} r={13} at={portraitTrip.felix} />
+                    <StopPulse cx={P.MAS.x} cy={P.MAS.y} r={18} at={[REACHES_VENUE, LEAVES_VENUE]} color="#C4714A" />
+                    <Passengers x={306} y={574} timing={WAITING_IN_TARRAGONA} />
+                    <Passengers x={66} y={314} timing={waitingAt(portraitTrip.crisol)} />
+                    <Passengers x={306} y={104} timing={waitingAt(portraitTrip.felix)} />
+                    <Passengers x={80} y={207} timing={ARRIVING_AT_THE_VENUE} scale={0.9} />
 
                     {/* Compass rose bottom-left */}
                     <g transform="translate(58, 620)" opacity="0.6">
@@ -415,11 +596,28 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
 
                         {/* Central door */}
                         <path d="M -3 24 L -3 13 L 3 13 L 3 24" strokeWidth="0.6" opacity="0.75" />
+
+                        {/* The house wakes up at dusk — the party is inside */}
+                        <NightLight>
+                            <rect x="-16" y="-4" width="3.5" height="5" />
+                            <rect x="-8" y="-4" width="3.5" height="5" />
+                            <rect x="4.5" y="-4" width="3.5" height="5" />
+                            <rect x="12.5" y="-4" width="3.5" height="5" />
+                            <g opacity="0.72">
+                                <path d="M -16 24 L -16 15 Q -16 9 -11 9 Q -6 9 -6 15 L -6 24 Z" />
+                                <path d="M 6 24 L 6 15 Q 6 9 11 9 Q 16 9 16 15 L 16 24 Z" />
+                                <path d="M -3 24 L -3 13 L 3 13 L 3 24 Z" />
+                            </g>
+                            <ellipse cx="0" cy="25" rx="22" ry="3.4" opacity="0.25" />
+                        </NightLight>
+
+                        <ChimneySmoke x={-10.5} y={-17.5} />
                     </g>
                 </svg>
 
                 {/* ------- LANDSCAPE MAP (desktop) ------- */}
                 <svg
+                    ref={landscapeRef}
                     viewBox="0 0 800 380"
                     className="w-full h-auto hidden md:block"
                     role="img"
@@ -486,7 +684,17 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     />
 
                     {/* VW Combi doing the round trip */}
-                    <Combi routeId="transfer-route" />
+                    <Combi routeId="transfer-route" keyPoints={landscapeTrip.keyPoints} keyTimes={landscapeTrip.keyTimes} />
+
+                    {/* Guests waiting at each stop, and the ring that flares when the combi pulls in */}
+                    <StopPulse cx={L.TARRAGONA.x} cy={L.TARRAGONA.y} r={11} at={[0.005, BACK_HOME]} />
+                    <StopPulse cx={L.CRISOL.x} cy={L.CRISOL.y} r={11} at={landscapeTrip.crisol} />
+                    <StopPulse cx={L.FELIX.x} cy={L.FELIX.y} r={11} at={landscapeTrip.felix} />
+                    <StopPulse cx={L.MAS.x} cy={L.MAS.y} r={17} at={[REACHES_VENUE, LEAVES_VENUE]} color="#C4714A" />
+                    <Passengers x={568} y={314} timing={WAITING_IN_TARRAGONA} />
+                    <Passengers x={188} y={213} timing={waitingAt(landscapeTrip.crisol)} />
+                    <Passengers x={700} y={58} timing={waitingAt(landscapeTrip.felix)} />
+                    <Passengers x={100} y={170} timing={ARRIVING_AT_THE_VENUE} scale={0.9} />
 
                     {/* Compass */}
                     <g transform="translate(72, 310)" opacity="0.6">
@@ -630,6 +838,22 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                             <path d="M 27 22 L 27 14" />
                             <path d="M 18 14 L 19 13 M 22 14 L 23 13 M 26 14 L 27 13" strokeWidth="0.3" />
                         </g>
+
+                        {/* The house wakes up at dusk — the party is inside */}
+                        <NightLight>
+                            <rect x="-14" y="-4" width="3" height="4" />
+                            <rect x="-7" y="-4" width="3" height="4" />
+                            <rect x="4" y="-4" width="3" height="4" />
+                            <rect x="11" y="-4" width="3" height="4" />
+                            <g opacity="0.72">
+                                <path d="M -15 22 L -15 14 Q -15 9 -10 9 Q -5 9 -5 14 L -5 22 Z" />
+                                <path d="M 5 22 L 5 14 Q 5 9 10 9 Q 15 9 15 14 L 15 22 Z" />
+                                <path d="M -3 22 L -3 12 L 3 12 L 3 22 Z" />
+                            </g>
+                            <ellipse cx="0" cy="23" rx="20" ry="3" opacity="0.25" />
+                        </NightLight>
+
+                        <ChimneySmoke x={-8.75} y={-16} />
                     </g>
                 </svg>
             </div>
