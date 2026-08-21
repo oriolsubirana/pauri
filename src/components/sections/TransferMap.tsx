@@ -24,19 +24,19 @@ const P = {
 // climbs to Mas Corbella while the sun rises (ida, 11:30), waits there through
 // midday and drives back down under the stars (vuelta, 23:00).
 const CYCLE = '30s'
-const MIDDAY = 11.4 // seconds into the loop: parked at the venue, guests out, sun at its highest
+const MIDDAY = 11.7 // seconds into the loop: parked at the venue, guests out, sun at its highest
 
 // --- The stops -------------------------------------------------------------
 // The combi waits at every pick-up while people get on (ida) or off (vuelta).
 const PARK = 0.03 // it halts just short of a marker, so it never covers the number
 const DWELL = 0.04 // how long it waits at a pick-up
-const LEAVES_HOME = 0.05 // departs Tarragona
-const REACHES_VENUE = 0.32
+const LEAVES_HOME = 0.09 // departs Tarragona, after a good while loading
+const REACHES_VENUE = 0.34
 // The party runs until dark: the combi only heads home once night has fallen,
 // and the farmhouse sends it off with fireworks
 const FIREWORKS = 0.58
 const LEAVES_VENUE = 0.66
-const BACK_HOME = 0.95
+const BACK_HOME = 0.92
 
 // `at` is where the hotel sits along the route, `halt` where the combi pulls up:
 // a bus-length away, on whichever side leaves the marker and its label visible.
@@ -183,8 +183,8 @@ const waitingAt = ([out, back]: [number, number]): Timing => ({
     values: '0.85;0.85;0;0;0.85;0.85',
 })
 const WAITING_IN_TARRAGONA: Timing = {
-    keyTimes: `0;${LEAVES_HOME};${BACK_HOME};${round4(BACK_HOME + 0.03)};1`,
-    values: '0.85;0;0;0.85;0.85',
+    keyTimes: `0;${round4(LEAVES_HOME - 0.025)};${LEAVES_HOME};${BACK_HOME};${round4(BACK_HOME + 0.025)};1`,
+    values: '0.85;0.85;0;0;0.85;0.85',
 }
 // Guests spill out when the combi arrives, stay in front of the house through
 // the whole party and the fireworks, and climb back aboard as it pulls away
@@ -598,7 +598,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                         arc={PORTRAIT_ARC}
                         stars={PORTRAIT_STARS}
                         sunKeyPoints="0;1;1;0;0"
-                        sunKeyTimes="0;0.32;0.4;0.56;1"
+                        sunKeyTimes="0;0.34;0.42;0.56;1"
                         sunR={11}
                         moonR={8}
                     />
@@ -639,7 +639,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <StopPulse cx={P.CRISOL.x} cy={P.CRISOL.y} r={13} at={portraitTrip.crisol} />
                     <StopPulse cx={P.FELIX.x} cy={P.FELIX.y} r={13} at={portraitTrip.felix} />
                     <StopPulse cx={P.MAS.x} cy={P.MAS.y} r={18} at={[REACHES_VENUE, LEAVES_VENUE]} color="#C4714A" />
-                    <Passengers x={306} y={574} timing={WAITING_IN_TARRAGONA} />
+                    <Passengers x={378} y={576} timing={WAITING_IN_TARRAGONA} />
                     <Passengers x={66} y={314} timing={waitingAt(portraitTrip.crisol)} />
                     <Passengers x={306} y={104} timing={waitingAt(portraitTrip.felix)} />
                     <Passengers x={80} y={207} timing={AT_THE_VENUE} scale={0.9} />
@@ -861,7 +861,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <StopPulse cx={L.CRISOL.x} cy={L.CRISOL.y} r={11} at={landscapeTrip.crisol} />
                     <StopPulse cx={L.FELIX.x} cy={L.FELIX.y} r={11} at={landscapeTrip.felix} />
                     <StopPulse cx={L.MAS.x} cy={L.MAS.y} r={17} at={[REACHES_VENUE, LEAVES_VENUE]} color="#C4714A" />
-                    <Passengers x={568} y={314} timing={WAITING_IN_TARRAGONA} />
+                    <Passengers x={630} y={320} timing={WAITING_IN_TARRAGONA} />
                     <Passengers x={188} y={213} timing={waitingAt(landscapeTrip.crisol)} />
                     <Passengers x={700} y={58} timing={waitingAt(landscapeTrip.felix)} />
                     <Passengers x={100} y={170} timing={AT_THE_VENUE} scale={0.9} />
