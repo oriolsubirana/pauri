@@ -24,29 +24,36 @@ const P = {
 // climbs to Mas Corbella while the sun rises (ida, 11:30), waits there through
 // midday and drives back down under the stars (vuelta, 23:00).
 const CYCLE = '30s'
-const MIDDAY = 13.9 // seconds into the loop: parked at the venue, guests out, sun at its highest
+const MIDDAY = 11.4 // seconds into the loop: parked at the venue, guests out, sun at its highest
 
 // --- The stops -------------------------------------------------------------
 // The combi waits at every pick-up while people get on (ida) or off (vuelta).
 const PARK = 0.03 // it halts just short of a marker, so it never covers the number
 const DWELL = 0.04 // how long it waits at a pick-up
 const LEAVES_HOME = 0.05 // departs Tarragona
-const REACHES_VENUE = 0.42
-const LEAVES_VENUE = 0.5
-const BACK_HOME = 0.92
+const REACHES_VENUE = 0.32
+// The party runs until dark: the combi only heads home once night has fallen,
+// and the farmhouse sends it off with fireworks
+const FIREWORKS = 0.58
+const LEAVES_VENUE = 0.66
+const BACK_HOME = 0.95
 
 // `at` is where the hotel sits along the route, `halt` where the combi pulls up:
 // a bus-length away, on whichever side leaves the marker and its label visible.
 type Stop = { at: number; halt: number }
-type Stops = { crisol: Stop; felix: Stop }
+// `turns` are the points where the route doubles back horizontally, measured on
+// the path. Both routes set off leftwards, so the combi faces left until the first.
+type Route = { crisol: Stop; felix: Stop; turns: number[] }
 
-const LANDSCAPE_STOPS: Stops = {
+const LANDSCAPE_ROUTE: Route = {
     crisol: { at: 0.2705, halt: 0.2514 },
     felix: { at: 0.6135, halt: 0.5944 },
+    turns: [0.2706, 0.6136],
 }
-const PORTRAIT_STOPS: Stops = {
+const PORTRAIT_ROUTE: Route = {
     crisol: { at: 0.3725, halt: 0.4015 },
     felix: { at: 0.722, halt: 0.751 },
+    turns: [0.3861, 0.7219],
 }
 
 const round4 = (n: number) => +n.toFixed(4)
@@ -55,7 +62,7 @@ const round4 = (n: number) => +n.toFixed(4)
  * Turns the stop positions into the combi's keyPoints/keyTimes plus the instant
  * it pulls into each hotel, so passengers and marker pulses hang off one clock.
  */
-function schedule({ crisol, felix }: Stops) {
+function schedule({ crisol, felix, turns }: Route) {
     const stopC = crisol.halt
     const stopF = felix.halt
     const legs = [stopC - PARK, stopF - stopC, 1 - PARK - stopF]
@@ -69,19 +76,104 @@ function schedule({ crisol, felix }: Stops) {
     const crisolBack = round4(felixBack + DWELL + back * legs[1])
     const wait = (t: number) => round4(t + DWELL)
 
+    const points = [PARK, PARK, stopC, stopC, stopF, stopF, 1 - PARK, 1 - PARK, stopF, stopF, stopC, stopC, PARK, PARK]
+    const times = [
+        0, LEAVES_HOME,
+        crisolOut, wait(crisolOut), felixOut, wait(felixOut),
+        REACHES_VENUE, LEAVES_VENUE,
+        felixBack, wait(felixBack), crisolBack, wait(crisolBack),
+        BACK_HOME, 1,
+    ]
+
     return {
-        keyPoints: [PARK, PARK, stopC, stopC, stopF, stopF, 1 - PARK, 1 - PARK, stopF, stopF, stopC, stopC, PARK, PARK].join(';'),
-        keyTimes: [
-            0, LEAVES_HOME,
-            crisolOut, wait(crisolOut), felixOut, wait(felixOut),
-            REACHES_VENUE, LEAVES_VENUE,
-            felixBack, wait(felixBack), crisolBack, wait(crisolBack),
-            BACK_HOME, 1,
-        ].join(';'),
+        keyPoints: points.join(';'),
+        keyTimes: times.join(';'),
+        facing: facingKeyframes(points, times, turns),
         crisol: [crisolOut, crisolBack] as [number, number],
         felix: [felixOut, felixBack] as [number, number],
     }
 }
+
+const PIVOT = 0.012 // how long the combi takes to swing round, as a fraction of the loop
+
+/**
+ * Which way the combi points at every moment: the way it is travelling along the
+ * route (out or back) combined with whether the route runs left or right there.
+ * Every change becomes a pair of scale keyframes, so the flip reads as the combi
+ * pivoting on the spot rather than snapping.
+ */
+function facingKeyframes(points: number[], times: number[], turns: number[]) {
+    // Both routes set off leftwards: an even number of turns behind us means left
+    const runsRight = (u: number) => turns.filter((turn) => turn < u).length % 2 === 1
+
+    const changes: { at: number; right: boolean }[] = []
+    for (let i = 1; i < points.length; i++) {
+        const [u0, u1, t0, t1] = [points[i - 1], points[i], times[i - 1], times[i]]
+        if (u0 === u1) continue // waiting at a stop
+
+        const forward = u1 > u0
+        const crossed = turns
+            .filter((turn) => turn > Math.min(u0, u1) && turn < Math.max(u0, u1))
+            .sort((a, b) => (forward ? a - b : b - a))
+
+        for (const u of [u0, ...crossed]) {
+            const at = t0 + ((t1 - t0) * (u - u0)) / (u1 - u0)
+            const ahead = forward ? u + 0.0001 : u - 0.0001
+            changes.push({ at: round4(at), right: runsRight(ahead) === forward })
+        }
+    }
+
+    // Back in Tarragona it swings round again, ready for the next morning
+    const first = changes[0]
+    if (changes[changes.length - 1].right !== first.right) {
+        changes.push({ at: round4((BACK_HOME + 1) / 2), right: first.right })
+    }
+
+    const keyTimes = [0]
+    const values = [first.right ? '1 1' : '-1 1']
+    for (const change of changes.slice(1)) {
+        const value = change.right ? '1 1' : '-1 1'
+        if (value === values[values.length - 1]) continue
+
+        // centred on the turn, so it is side-on exactly where the road doubles back
+        const from = Math.max(round4(change.at - PIVOT / 2), round4(keyTimes[keyTimes.length - 1] + 0.001))
+        keyTimes.push(from, Math.max(round4(change.at + PIVOT / 2), round4(from + 0.001)))
+        values.push(values[values.length - 1], value)
+    }
+    keyTimes.push(1)
+    values.push(values[values.length - 1])
+
+    return { keyTimes: keyTimes.join(';'), values: values.join(';') }
+}
+
+/**
+ * A track that sits still all day and only misbehaves on the way home, easing
+ * off over the last few steps as the combi pulls into Tarragona.
+ */
+function onTheWayHome(from: number, to: number, steps: number, still: string, step: (i: number, settling: number) => string) {
+    const keyTimes = [0, from]
+    const values = [still, still]
+
+    for (let i = 1; i <= steps; i++) {
+        keyTimes.push(round4(from + ((to - from) * i) / (steps + 1)))
+        values.push(step(i, Math.min(1, (steps + 1 - i) / 3)))
+    }
+
+    keyTimes.push(to, 1)
+    values.push(still, still)
+    return { keyTimes: keyTimes.join(';'), values: values.join(';') }
+}
+
+// How hard the combi leans on each lurch, in degrees, cycled for an uneven gait
+const LURCHES = [4, 2.8, 5.6, 3.2, 6.4, 2.4, 4.8]
+
+// It rocks over its wheels, like the party it is carrying...
+const DRUNKEN_SWAY = onTheWayHome(LEAVES_VENUE, BACK_HOME, 20, '0 0 5', (i, settling) =>
+    `${round4(LURCHES[i % LURCHES.length] * (i % 2 ? 1 : -1) * settling)} 0 5`)
+
+// ...and bounces on a different beat, so the two never quite line up
+const DRUNKEN_BOUNCE = onTheWayHome(LEAVES_VENUE, BACK_HOME, 13, '0 0', (i, settling) =>
+    `0 ${round4(-0.9 * (i % 2 ? 1 : 0.3) * settling)}`)
 
 type Timing = { keyTimes: string; values: string }
 
@@ -102,24 +194,24 @@ const AT_THE_VENUE: Timing = {
 }
 
 // The shadow swings with the sun: long at dawn, short at midday, long at dusk
-const SHADOW_TIMES = '0;0.09;0.25;0.42;0.58;0.7;0.8;1'
+const SHADOW_TIMES = '0;0.09;0.18;0.28;0.4;0.5;0.58;1'
 
 // Night veil over the paper — kept light so the ink stays readable
-const NIGHT_TIMES = '0;0.06;0.18;0.62;0.82;0.9;1'
+const NIGHT_TIMES = '0;0.06;0.16;0.4;0.54;0.62;1'
 const NIGHT_OPACITY = '0.42;0.32;0;0;0.32;0.42;0.42'
 // Anything that only shines at night: stars, headlights, lit windows
 const NIGHT_LIGHTS = '0.9;0.7;0;0;0.7;0.9;0.9'
 // Warm sunrise / sunset wash
-const WARM_TIMES = '0;0.08;0.2;0.6;0.76;0.88;1'
+const WARM_TIMES = '0;0.08;0.2;0.38;0.5;0.6;1'
 const WARM_OPACITY = '0;0.18;0.05;0.05;0.22;0;0'
 
-const SUN_FADE_TIMES = '0;0.09;0.62;0.74;1'
+const SUN_FADE_TIMES = '0;0.09;0.4;0.52;1'
 const SUN_FADE = '0;1;1;0;0'
-const MOON_FADE_TIMES = '0;0.7;0.8;0.96;1'
+const MOON_FADE_TIMES = '0;0.52;0.62;0.96;1'
 const MOON_FADE = '0;0;0.9;0.9;0'
-const MOON_TIMES = '0;0.62;1'
-// The moon climbs halfway up the same arc while the combi drives home
-const MOON_KEY_POINTS = '0;0.12;0.5'
+const MOON_TIMES = '0;0.5;1'
+// The moon is already well up when it appears, and keeps climbing all night
+const MOON_KEY_POINTS = '0.25;0.35;0.72'
 
 type Star = [x: number, y: number, r: number]
 
@@ -206,6 +298,67 @@ function Passengers({ x, y, timing, scale = 1 }: { x: number; y: number; timing:
                     <path d="M 0 -3.4 L 0 -1 M -1.5 -2.7 L 1.5 -2.7 M 0 -1 L -1.3 0.8 M 0 -1 L 1.3 0.8" />
                 </g>
             ))}
+        </g>
+    )
+}
+
+// A burst is twelve spokes with a ring of embers falling between them
+const SPOKES = Array.from({ length: 12 }, (_, i) => {
+    const angle = (i * Math.PI) / 6
+    return { key: i, cos: +Math.cos(angle).toFixed(3), sin: +Math.sin(angle).toFixed(3) }
+})
+const EMBERS = Array.from({ length: 12 }, (_, i) => {
+    const angle = ((i + 0.5) * Math.PI) / 6
+    return { key: i, cos: +Math.cos(angle).toFixed(3), sin: +Math.sin(angle).toFixed(3) }
+})
+
+const RISE = 0.014 // how long a rocket takes to climb, as a fraction of the loop
+const BLOOM = 0.05 // and how long its burst hangs in the sky
+
+type Burst = { x: number; y: number; r: number; after: number; color: string }
+
+/**
+ * The send-off: rockets climb from the farmhouse and burst over it in the last
+ * moments of the party, just before the combi pulls away. Silent all day, like
+ * everything else here, because the whole map runs off one 30s loop.
+ */
+function Fireworks({ from, bursts }: { from: { x: number; y: number }; bursts: Burst[] }) {
+    return (
+        <g>
+            {bursts.map((burst) => {
+                const lit = round4(FIREWORKS + burst.after)
+                const opens = round4(lit + RISE)
+                const fades = round4(opens + BLOOM)
+
+                return (
+                    <g key={`${burst.x}-${burst.y}`}>
+                        {/* the rocket climbing */}
+                        <circle r="1.1" fill="#EFBB78" opacity="0">
+                            <animate attributeName="cx" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={`0;${lit};${opens};1`} values={`${from.x};${from.x};${burst.x};${burst.x}`} />
+                            <animate attributeName="cy" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={`0;${lit};${opens};1`} values={`${from.y};${from.y};${burst.y};${burst.y}`} />
+                            <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={`0;${lit};${round4(lit + 0.002)};${round4(opens - 0.002)};${opens};1`} values="0;0;0.9;0.9;0;0" />
+                        </circle>
+
+                        {/* and the burst it opens into */}
+                        <g transform={`translate(${burst.x} ${burst.y})`}>
+                            <g opacity="0" stroke={burst.color} strokeWidth="1.3" strokeLinecap="round" fill={burst.color}>
+                                <animateTransform attributeName="transform" type="scale" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={`0;${opens};${round4(opens + 0.014)};${fades};1`} values="0.15;0.15;1;1.3;1.3" />
+                                <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={`0;${opens};${round4(opens + 0.006)};${round4(opens + 0.022)};${fades};1`} values="0;0;0.95;0.8;0;0" />
+                                <circle r={round4(burst.r * 0.85)} stroke="none" opacity="0.15" />
+                                {SPOKES.map(({ key, cos, sin }) => (
+                                    <g key={key}>
+                                        <line x1={round4(cos * burst.r * 0.3)} y1={round4(sin * burst.r * 0.3)} x2={round4(cos * burst.r)} y2={round4(sin * burst.r)} />
+                                        <circle cx={round4(cos * burst.r)} cy={round4(sin * burst.r)} r="1.1" stroke="none" />
+                                    </g>
+                                ))}
+                                {EMBERS.map(({ key, cos, sin }) => (
+                                    <circle key={key} cx={round4(cos * burst.r * 0.62)} cy={round4(sin * burst.r * 0.62)} r="0.9" stroke="none" opacity="0.8" />
+                                ))}
+                            </g>
+                        </g>
+                    </g>
+                )
+            })}
         </g>
     )
 }
@@ -336,7 +489,7 @@ function SkyCycle({
 }
 
 /** The VW combi doing the round trip: up at daylight, back with the lights on. */
-function Combi({ routeId, keyPoints, keyTimes }: { routeId: string; keyPoints: string; keyTimes: string }) {
+function Combi({ routeId, keyPoints, keyTimes, facing }: { routeId: string; keyPoints: string; keyTimes: string; facing: Timing }) {
     return (
         <g>
             {/* Shadow: long at sunrise, short at midday, long the other way at dusk */}
@@ -345,39 +498,44 @@ function Combi({ routeId, keyPoints, keyTimes }: { routeId: string; keyPoints: s
                 <animate attributeName="rx" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={SHADOW_TIMES} values="13;20;15;11;15;20;13;13" />
                 <animate attributeName="opacity" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={SHADOW_TIMES} values="0.05;0.1;0.13;0.15;0.13;0.09;0.05;0.05" />
             </ellipse>
-            {/* Flipped while parked at the venue so it faces the way it drives back */}
+            {/* Pivots wherever the road doubles back, so it always faces the way it goes */}
             <g>
-                <animateTransform attributeName="transform" type="scale" calcMode="discrete" values="1 1;-1 1;1 1" keyTimes="0;0.46;0.96" dur={CYCLE} repeatCount="indefinite" />
-                <path d="M -13 -1 L 14 -1 L 14 4 Q 14 5 13 5 L -13 5 Q -14 5 -14 4 L -14 0 Q -14 -1 -13 -1 Z" fill="#5BB1A8" />
-                <path d="M -13 -1 L -13 -7 Q -13 -9 -11 -9 L 7 -9 Q 13 -9 14 -4 L 14 -1 Z" fill="#F3ECDB" />
-                <line x1="-14" y1="-1" x2="14" y2="-1" stroke="#A89880" strokeWidth="0.35" />
-                <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" fill="#8FB9C1" opacity="0.75" />
-                <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                <rect x="1" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
-                {/* Windows lit after sunset */}
-                <NightLight>
-                    <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" />
-                    <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" />
-                    <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" />
-                    <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" />
-                    <rect x="1" y="-7" width="3.4" height="4" rx="0.4" />
-                </NightLight>
-                <circle cx="12.3" cy="1.2" r="1.1" fill="none" stroke="#F3ECDB" strokeWidth="0.4" />
-                <circle cx="12.8" cy="3" r="0.75" fill="#FFF7E0" stroke="#A89880" strokeWidth="0.2" />
-                {/* Headlight glow after sunset */}
-                <NightLight>
-                    <circle cx="14.2" cy="2.8" r="3" opacity="0.3" />
-                    <circle cx="13.2" cy="2.9" r="1.5" opacity="0.9" />
-                </NightLight>
-                <rect x="7" y="4" width="7.2" height="1" rx="0.3" fill="#F3ECDB" />
-                <circle cx="-8.5" cy="5.2" r="2.6" fill="#2D2A24" />
-                <circle cx="-8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
-                <circle cx="-8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
-                <circle cx="8.5" cy="5.2" r="2.6" fill="#2D2A24" />
-                <circle cx="8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
-                <circle cx="8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
+                <animateTransform attributeName="transform" type="scale" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={facing.keyTimes} values={facing.values} />
+                <animateTransform attributeName="transform" type="translate" additive="sum" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={DRUNKEN_BOUNCE.keyTimes} values={DRUNKEN_BOUNCE.values} />
+                {/* And rocks all the way home, like the party it is carrying */}
+                <g>
+                    <animateTransform attributeName="transform" type="rotate" dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyTimes={DRUNKEN_SWAY.keyTimes} values={DRUNKEN_SWAY.values} />
+                    <path d="M -13 -1 L 14 -1 L 14 4 Q 14 5 13 5 L -13 5 Q -14 5 -14 4 L -14 0 Q -14 -1 -13 -1 Z" fill="#5BB1A8" />
+                    <path d="M -13 -1 L -13 -7 Q -13 -9 -11 -9 L 7 -9 Q 13 -9 14 -4 L 14 -1 Z" fill="#F3ECDB" />
+                    <line x1="-14" y1="-1" x2="14" y2="-1" stroke="#A89880" strokeWidth="0.35" />
+                    <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" fill="#8FB9C1" opacity="0.75" />
+                    <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                    <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                    <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                    <rect x="1" y="-7" width="3.4" height="4" rx="0.4" fill="#8FB9C1" opacity="0.75" />
+                    {/* Windows lit after sunset */}
+                    <NightLight>
+                        <path d="M 8 -7.5 Q 11 -7.5 12.5 -4.6 L 8 -3.5 Z" />
+                        <rect x="-11" y="-7" width="3.4" height="4" rx="0.4" />
+                        <rect x="-7" y="-7" width="3.4" height="4" rx="0.4" />
+                        <rect x="-3" y="-7" width="3.4" height="4" rx="0.4" />
+                        <rect x="1" y="-7" width="3.4" height="4" rx="0.4" />
+                    </NightLight>
+                    <circle cx="12.3" cy="1.2" r="1.1" fill="none" stroke="#F3ECDB" strokeWidth="0.4" />
+                    <circle cx="12.8" cy="3" r="0.75" fill="#FFF7E0" stroke="#A89880" strokeWidth="0.2" />
+                    {/* Headlight glow after sunset */}
+                    <NightLight>
+                        <circle cx="14.2" cy="2.8" r="3" opacity="0.3" />
+                        <circle cx="13.2" cy="2.9" r="1.5" opacity="0.9" />
+                    </NightLight>
+                    <rect x="7" y="4" width="7.2" height="1" rx="0.3" fill="#F3ECDB" />
+                    <circle cx="-8.5" cy="5.2" r="2.6" fill="#2D2A24" />
+                    <circle cx="-8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
+                    <circle cx="-8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
+                    <circle cx="8.5" cy="5.2" r="2.6" fill="#2D2A24" />
+                    <circle cx="8.5" cy="5.2" r="1.3" fill="#F3ECDB" />
+                    <circle cx="8.5" cy="5.2" r="0.4" fill="#5E6B3C" />
+                </g>
             </g>
             <animateMotion dur={CYCLE} repeatCount="indefinite" calcMode="linear" keyPoints={keyPoints} keyTimes={keyTimes}>
                 <mpath href={`#${routeId}`} />
@@ -391,8 +549,8 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
     const hotels = dict.accommodation.hotels
     const portraitRef = useStillWhenReducedMotion()
     const landscapeRef = useStillWhenReducedMotion()
-    const landscapeTrip = schedule(LANDSCAPE_STOPS)
-    const portraitTrip = schedule(PORTRAIT_STOPS)
+    const landscapeTrip = schedule(LANDSCAPE_ROUTE)
+    const portraitTrip = schedule(PORTRAIT_ROUTE)
 
     // Routes (ida order): Tarragona → Crisol → Félix → Mas Corbella
     const landscapeRoute = [
@@ -440,7 +598,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                         arc={PORTRAIT_ARC}
                         stars={PORTRAIT_STARS}
                         sunKeyPoints="0;1;1;0;0"
-                        sunKeyTimes="0;0.42;0.5;0.74;1"
+                        sunKeyTimes="0;0.32;0.4;0.56;1"
                         sunR={11}
                         moonR={8}
                     />
@@ -474,7 +632,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     />
 
                     {/* VW Combi doing the round trip */}
-                    <Combi routeId="transfer-route-portrait" keyPoints={portraitTrip.keyPoints} keyTimes={portraitTrip.keyTimes} />
+                    <Combi routeId="transfer-route-portrait" keyPoints={portraitTrip.keyPoints} keyTimes={portraitTrip.keyTimes} facing={portraitTrip.facing} />
 
                     {/* Guests waiting at each stop, and the ring that flares when the combi pulls in */}
                     <StopPulse cx={P.TARRAGONA.x} cy={P.TARRAGONA.y} r={13} at={[0.005, BACK_HOME]} />
@@ -485,6 +643,16 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <Passengers x={66} y={314} timing={waitingAt(portraitTrip.crisol)} />
                     <Passengers x={306} y={104} timing={waitingAt(portraitTrip.felix)} />
                     <Passengers x={80} y={207} timing={AT_THE_VENUE} scale={0.9} />
+
+                    {/* End of the party: fireworks over Mas Corbella */}
+                    <Fireworks
+                        from={{ x: 74, y: 158 }}
+                        bursts={[
+                            { x: 174, y: 120, r: 18, after: 0, color: '#EFBB78' },
+                            { x: 252, y: 156, r: 13, after: 0.026, color: '#C4714A' },
+                            { x: 268, y: 94, r: 15, after: 0.05, color: '#FDFBF5' },
+                        ]}
+                    />
 
                     {/* Compass rose bottom-left */}
                     <g transform="translate(58, 620)" opacity="0.6">
@@ -644,7 +812,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                         arc={LANDSCAPE_ARC}
                         stars={LANDSCAPE_STARS}
                         sunKeyPoints="0;1;1"
-                        sunKeyTimes="0;0.78;1"
+                        sunKeyTimes="0;0.56;1"
                     />
 
                     <rect x="12" y="12" width="776" height="356" fill="none" stroke="#5E6B3C" strokeWidth="1.2" opacity="0.4" rx="14" />
@@ -686,7 +854,7 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     />
 
                     {/* VW Combi doing the round trip */}
-                    <Combi routeId="transfer-route" keyPoints={landscapeTrip.keyPoints} keyTimes={landscapeTrip.keyTimes} />
+                    <Combi routeId="transfer-route" keyPoints={landscapeTrip.keyPoints} keyTimes={landscapeTrip.keyTimes} facing={landscapeTrip.facing} />
 
                     {/* Guests waiting at each stop, and the ring that flares when the combi pulls in */}
                     <StopPulse cx={L.TARRAGONA.x} cy={L.TARRAGONA.y} r={11} at={[0.005, BACK_HOME]} />
@@ -697,6 +865,16 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <Passengers x={188} y={213} timing={waitingAt(landscapeTrip.crisol)} />
                     <Passengers x={700} y={58} timing={waitingAt(landscapeTrip.felix)} />
                     <Passengers x={100} y={170} timing={AT_THE_VENUE} scale={0.9} />
+
+                    {/* End of the party: fireworks over Mas Corbella */}
+                    <Fireworks
+                        from={{ x: 96, y: 124 }}
+                        bursts={[
+                            { x: 208, y: 48, r: 22, after: 0, color: '#EFBB78' },
+                            { x: 288, y: 28, r: 15, after: 0.026, color: '#C4714A' },
+                            { x: 158, y: 25, r: 18, after: 0.05, color: '#FDFBF5' },
+                        ]}
+                    />
 
                     {/* Compass */}
                     <g transform="translate(72, 310)" opacity="0.6">
