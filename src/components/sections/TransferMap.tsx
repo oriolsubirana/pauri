@@ -186,11 +186,11 @@ const WAITING_IN_TARRAGONA: Timing = {
     keyTimes: `0;${LEAVES_HOME};${BACK_HOME};${round4(BACK_HOME + 0.03)};1`,
     values: '0.85;0;0;0.85;0.85',
 }
-// Guests spill out when the combi arrives and stay in front of the house all
-// night — the loop wraps around, so they only head inside once it is light again
+// Guests spill out when the combi arrives, stay in front of the house through
+// the whole party and the fireworks, and climb back aboard as it pulls away
 const AT_THE_VENUE: Timing = {
-    keyTimes: `0;0.12;0.16;${REACHES_VENUE};${round4(REACHES_VENUE + 0.03)};1`,
-    values: '0.85;0.85;0;0;0.85;0.85',
+    keyTimes: `0;${REACHES_VENUE};${round4(REACHES_VENUE + 0.03)};${round4(LEAVES_VENUE - 0.03)};${LEAVES_VENUE};1`,
+    values: '0;0;0.85;0.85;0;0',
 }
 
 // The shadow swings with the sun: long at dawn, short at midday, long at dusk
