@@ -648,9 +648,9 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <Fireworks
                         from={{ x: 74, y: 158 }}
                         bursts={[
-                            { x: 174, y: 120, r: 18, after: 0, color: '#EFBB78' },
-                            { x: 252, y: 156, r: 13, after: 0.026, color: '#C4714A' },
-                            { x: 268, y: 94, r: 15, after: 0.05, color: '#FDFBF5' },
+                            { x: 152, y: 168, r: 15, after: 0, color: '#EFBB78' },
+                            { x: 206, y: 126, r: 12, after: 0.026, color: '#C4714A' },
+                            { x: 140, y: 92, r: 12, after: 0.05, color: '#FDFBF5' },
                         ]}
                     />
 
@@ -870,9 +870,9 @@ export function TransferMap({ dict }: { dict: Dictionary }) {
                     <Fireworks
                         from={{ x: 96, y: 124 }}
                         bursts={[
-                            { x: 208, y: 48, r: 22, after: 0, color: '#EFBB78' },
-                            { x: 288, y: 28, r: 15, after: 0.026, color: '#C4714A' },
-                            { x: 158, y: 25, r: 18, after: 0.05, color: '#FDFBF5' },
+                            { x: 54, y: 84, r: 16, after: 0, color: '#EFBB78' },
+                            { x: 188, y: 116, r: 13, after: 0.026, color: '#C4714A' },
+                            { x: 110, y: 26, r: 11, after: 0.05, color: '#FDFBF5' },
                         ]}
                     />
 
